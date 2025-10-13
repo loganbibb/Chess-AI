@@ -9,7 +9,7 @@ class Piece {
     char file;
 public:
     Piece(): color(NOCOLOR), rank(0), file(0) {}
-    Piece(PieceColor _color, char _file, char _rank): color(_color), rank(_rank), file(_file) {}
+    Piece(PieceColor _color, char _rank, char _file): color(_color), rank(_rank), file(_file) {}
     PieceColor get_color() {return color;}
 };
 
