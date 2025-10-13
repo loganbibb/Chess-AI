@@ -1,18 +1,16 @@
+#include "piece_colors.h"
+
 #ifndef PIECE_H
 #define PIECE_H
 
 class Piece {
-    piece_colors color = NOCOLOR;
-    char rank = 0;
-    char file = 0;
+    PieceColor color;
+    char rank;
+    char file;
 public:
-    Piece() {color = NOCOLOR; type = NOPIECE; file = 0; rank = 0;}
-    Piece(piece_colors _color, char _file, char _rank) {
-        color = _color;
-        file = _file;
-        rank = _rank;
-    }
-    piece_colors get_color() {return color;}
+    Piece(): color(NOCOLOR), rank(0), file(0) {}
+    Piece(PieceColor _color, char _file, char _rank): color(_color), rank(_rank), file(_file) {}
+    PieceColor get_color() {return color;}
 };
 
 #endif
