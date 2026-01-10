@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# My additions
+Class Diagram/.$ClassDiagram.drawio.bkp
+*.idea/
