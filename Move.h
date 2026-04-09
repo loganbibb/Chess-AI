@@ -1,11 +1,10 @@
 #include "Pieces.h"
+#include "Square.h"
 
 struct Move {
     // Used to represent a move from one square to another. 
-    char from_file = 0;
-    char from_rank = 0;
-    char to_file = 0;
-    char to_rank = 0;
+    Square from_square = 0; // 0-63, where 0 is a1 and 63 is h8
+    Square to_square = 0; // 0-63, where 0 is a1 and 63 is h8
 
     bool is_check = false;
     bool is_castle = false; 

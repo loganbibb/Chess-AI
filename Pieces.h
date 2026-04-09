@@ -21,5 +21,10 @@ enum class Pieces {
     WKING = 6
 };
 
+enum class Colors {
+    WHITE,
+    BLACK
+};
+
 std::string piece_to_string(Pieces piece);
 #endif

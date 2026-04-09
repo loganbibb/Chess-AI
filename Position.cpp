@@ -42,9 +42,9 @@ void Position::setup_starting_position() {
 }
 
 float Position::get_eval() {
-    int pos_eval = 0;
+    eval = 0;
     // TODO: implement evaluation function
-    return pos_eval; 
+    return eval; 
 }
 
 inline std::vector<Pieces> Position::get_pieces() {
@@ -68,6 +68,68 @@ std::vector<Position> Position::generate_moves() {
     return moves;
 }
 
+void Position::make_move(Move move) {
+    /**
+     * Applies a move to the current position.
+     * Special handling for castling, promotion, and en passant
+     * TODO: pass in and populate an undo-state object to allow for unmaking moves. This will be necessary for the search algorithm.
+     * TODO: create an undo-state class
+     */
+
+    // perform the basic from-to move. Additional conditions will be handled below
+    pieces[move.to_square()] = pieces[move.from_square()];
+    pieces[move.from_square()] = Pieces::NOPIECE;
+
+    // handle castle
+    if (move.is_castle) {
+        if (side_to_move == Colors::WHITE) {
+            white_castling_rights_kingside = false;
+            white_castling_rights_queenside = false;
+        } else {
+            black_castling_rights_kingside = false;
+            black_castling_rights_queenside = false;
+        }
+        // if white kingside castle, move the rook as well
+        if (move.to_square == "g1") {
+            pieces[Square('f', '1')] = Pieces::WROOK;
+            pieces[Square('h', '1')] = Pieces::NOPIECE;
+        }
+        // if white queenside castle, move the rook as well
+        else if (move.to_square == "c1") {
+            pieces[Square('d', '1')] = Pieces::WROOK;
+            pieces[Square('a', '1')] = Pieces::NOPIECE;
+        }
+        // if black kingside castle, move the rook as well
+        else if (move.to_square == "g8") {
+            pieces[Square('f', '8')] = Pieces::BROOK;
+            pieces[Square('h', '8')] = Pieces::NOPIECE;
+        }
+        // if black queenside castle, move the rook as well
+        else if (move.to_square == "c8") {
+            pieces[Square('d', '8')] = Pieces::BROOK;
+            pieces[Square('a', '8')] = Pieces::NOPIECE;
+        }
+        else {
+            std::cerr << "Invalid castle move: " << move.from_square.to_string() << " --> " << move.to_square.to_string() << std::endl;
+        }
+    }
+
+    // handle promotion
+    if (move.is_promotion) {
+        pieces[move.to_square()] = move.promotion_piece;
+    }
+
+    // handle en passant
+    if (move.is_en_passant) {
+        if (side_to_move == Colors::WHITE) {
+            pieces[Square(move.to_square().file(), move.to_square().rank() - 1)] = Pieces::NOPIECE;
+        } else {
+            pieces[Square(move.to_square().file(), move.to_square().rank() + 1)] = Pieces::NOPIECE;
+        }
+    }
+
+}
+
 void Position::show() {
     // Print out 8x8 board with pieces represented by their enum values.
     // Primarily for debugging. 
@@ -78,3 +140,4 @@ void Position::show() {
         std::cout << std::endl;
     }
 }
+
