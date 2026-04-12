@@ -1,6 +1,8 @@
 #include <string> 
 #include <cstring>
 
+#pragma once 
+
 class Square{
     /*
     Square class represents a square on the chess board. It is essentially a
@@ -12,18 +14,18 @@ class Square{
 
     public: 
 
-    Square(char file, char rank);
-    Square(char new_index);
+    Square(const char file, const char rank);
+    Square(const char new_index);
     Square& operator=(const Square& other);
     Square& operator=(const char& new_index);
-    void set_square(char file, char rank);
-    void set_square(char new_index);
-    inline char file();
-    inline char rank();
-    char operator()();
-    bool operator==(const std::string& other);
-    bool operator==(const char *other);
-    bool operator==(const Square& other);
-    std::string to_string();
+    void set_square(const char file, const char rank);
+    void set_square(const char new_index);
+    inline char file() const {return index % 8;}
+    inline char rank() const {return index / 8;}
+    char operator()() const;
+    bool operator==(const std::string& other) const;
+    bool operator==(const char *other) const;
+    bool operator==(const Square& other) const;
+    std::string to_string() const;
 
 };

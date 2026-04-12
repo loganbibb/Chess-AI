@@ -1,6 +1,6 @@
 #include "Pieces.h"
 
-std::string piece_to_string(Pieces piece) {
+std::string piece_to_string(const Pieces& piece) {
     switch (piece) {
         case Pieces::NOPIECE:
             return "--";

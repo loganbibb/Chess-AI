@@ -47,11 +47,11 @@ float Position::get_eval() {
     return eval; 
 }
 
-inline std::vector<Pieces> Position::get_pieces() {
+inline PieceVector Position::get_pieces() {
     return pieces;
 }
 
-void Position::set_pieces(std::vector<Pieces> new_pieces) {
+void Position::set_pieces(PieceVector new_pieces) {
     // To be used sparingly, as it does not check for validity of the new position. Primarily for testing purposes.
     pieces = new_pieces;
 }
@@ -91,40 +91,40 @@ void Position::make_move(Move move) {
         }
         // if white kingside castle, move the rook as well
         if (move.to_square == "g1") {
-            pieces[Square('f', '1')] = Pieces::WROOK;
-            pieces[Square('h', '1')] = Pieces::NOPIECE;
+            pieces["f1"] = Pieces::WROOK;
+            pieces["h1"] = Pieces::NOPIECE;
         }
         // if white queenside castle, move the rook as well
         else if (move.to_square == "c1") {
-            pieces[Square('d', '1')] = Pieces::WROOK;
-            pieces[Square('a', '1')] = Pieces::NOPIECE;
+            pieces["d1"] = Pieces::WROOK;
+            pieces["a1"] = Pieces::NOPIECE;
         }
         // if black kingside castle, move the rook as well
         else if (move.to_square == "g8") {
-            pieces[Square('f', '8')] = Pieces::BROOK;
-            pieces[Square('h', '8')] = Pieces::NOPIECE;
+            pieces["f8"] = Pieces::BROOK;
+            pieces["h8"] = Pieces::NOPIECE;
         }
         // if black queenside castle, move the rook as well
         else if (move.to_square == "c8") {
-            pieces[Square('d', '8')] = Pieces::BROOK;
-            pieces[Square('a', '8')] = Pieces::NOPIECE;
+            pieces["d8"] = Pieces::BROOK;
+            pieces["a8"] = Pieces::NOPIECE;
         }
         else {
-            std::cerr << "Invalid castle move: " << move.from_square.to_string() << " --> " << move.to_square.to_string() << std::endl;
+            throw Exceptions::InvalidMoveException("Invalid castle move. Castle moves must be to g1, c1, g8, or c8.");
         }
     }
 
     // handle promotion
     if (move.is_promotion) {
-        pieces[move.to_square()] = move.promotion_piece;
+        pieces[move.to_square] = move.promotion_piece;
     }
 
     // handle en passant
     if (move.is_en_passant) {
         if (side_to_move == Colors::WHITE) {
-            pieces[Square(move.to_square().file(), move.to_square().rank() - 1)] = Pieces::NOPIECE;
+            pieces(move.to_square.file(), move.to_square.rank() - 1) = Pieces::NOPIECE;
         } else {
-            pieces[Square(move.to_square().file(), move.to_square().rank() + 1)] = Pieces::NOPIECE;
+            pieces(move.to_square.file(), move.to_square.rank() + 1) = Pieces::NOPIECE;
         }
     }
 
@@ -133,11 +133,6 @@ void Position::make_move(Move move) {
 void Position::show() {
     // Print out 8x8 board with pieces represented by their enum values.
     // Primarily for debugging. 
-    for (int i = 8; i > 0; i--) {
-        for (int j = 0; j < 8; j++) {
-            std::cout << std::setw(3) << piece_to_string(pieces[(i-1)*8 + j]);
-        }
-        std::cout << std::endl;
-    }
+    std::cout << pieces.to_string() << std::endl;
 }
 

@@ -26,5 +26,5 @@ enum class Colors {
     BLACK
 };
 
-std::string piece_to_string(Pieces piece);
+std::string piece_to_string(const Pieces& piece);
 #endif
