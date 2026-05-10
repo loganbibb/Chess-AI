@@ -1,10 +1,10 @@
+#pragma once 
+
 #include <vector> 
 #include <string>
 #include "error_types.h"
 #include "Pieces.h"
 #include "Square.h"
-
-#pragma once 
 
 class PieceVector : public std::vector<Pieces> {
     /*

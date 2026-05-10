@@ -1,8 +1,11 @@
 #include <vector>
 
+#include "CastlingRights.h"
+#include "Move.h" 
 #include "Pieces.h"
 #include "PieceVector.h"
-#include "Move.h" 
+#include "Square.h"
+#include "Unmove.h"
 
 #pragma once 
 
@@ -13,14 +16,18 @@ class Position {
     It also has functions to generate legal moves and evaluate the position.
     */
     PieceVector pieces; // initialize all squares to NOPIECE
-    float eval = 0;
-    Colors side_to_move = Colors::WHITE; 
-    bool white_check = false;
-    bool black_check = false;
-    bool white_castling_rights_kingside = true; 
-    bool white_castling_rights_queenside = true;
-    bool black_castling_rights_kingside = true;
-    bool black_castling_rights_queenside = true;
+    float eval {0};
+    Colors side_to_move {Colors::WHITE}; 
+    // castling rights
+    bool white_check {false};
+    bool black_check {false};
+    CastlingRights castling_rights;
+    // en passant target square, if applicable. Otherwise, set to 0.
+    Square en_passant_square {-1};
+    // halfmove clock for 50-move rule
+    unsigned char halfmove_clock {0};
+    // full move number, starting at 1
+    unsigned short fullmove_num {0};
 
 
     // functions 
@@ -31,8 +38,8 @@ public:
     inline PieceVector get_pieces();
     void set_pieces(PieceVector new_pieces);
     std::vector<Position> generate_moves();
-    void make_move(Move move);
-    void unmake_move(Move move, Position old_position);
+    void make_move(Move& move, Unmove& unmove);
+    void unmake_move(Move& move, Unmove& unmove);
     void show();
     
 };

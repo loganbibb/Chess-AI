@@ -1,7 +1,7 @@
+#pragma once 
+
 #include <string> 
 #include <cstring>
-
-#pragma once 
 
 class Square{
     /*
@@ -26,6 +26,7 @@ class Square{
     bool operator==(const std::string& other) const;
     bool operator==(const char *other) const;
     bool operator==(const Square& other) const;
+    operator int() const;
     std::string to_string() const;
 
 };

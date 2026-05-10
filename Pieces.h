@@ -1,8 +1,6 @@
+#pragma once
 
 #include <string> 
-
-#ifndef PIECES_H
-#define PIECES_H
 
 enum class Pieces {
     // create enum class for pieces with negative values for black pieces and positive values for white pieces.
@@ -27,4 +25,3 @@ enum class Colors {
 };
 
 std::string piece_to_string(const Pieces& piece);
-#endif

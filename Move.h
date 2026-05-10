@@ -1,7 +1,7 @@
+#pragma once 
+
 #include "Pieces.h"
 #include "Square.h"
-
-#pragma once 
 
 struct Move {
     // Used to represent a move from one square to another. 

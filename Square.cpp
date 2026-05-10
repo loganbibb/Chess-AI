@@ -60,6 +60,8 @@ bool Square::operator==(const Square& other) const {
     return index == other.index;
 }
 
+Square::operator int() const { return index; }
+
 std::string Square::to_string() const {
     // convert from index to string format "a1", "e4", etc.
     char file_char = 'a' + file(); 

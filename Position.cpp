@@ -1,7 +1,10 @@
 #include <iostream>
 #include <iomanip>
 
+#include "Move.h"
+#include "Pieces.h"
 #include "Position.h"
+#include "Unmove.h"
 
 Position::Position(){
     /* Creates a board with pieces at the starting positions. */
@@ -68,26 +71,43 @@ std::vector<Position> Position::generate_moves() {
     return moves;
 }
 
-void Position::make_move(Move move) {
+void Position::make_move(Move& move, Unmove& unmove) {
     /**
      * Applies a move to the current position.
      * Special handling for castling, promotion, and en passant
+     * increment halfmove clock, and reset if pawn move or capture
+     * Increment fullmove number if white to move
      * TODO: pass in and populate an undo-state object to allow for unmaking moves. This will be necessary for the search algorithm.
      * TODO: create an undo-state class
      */
 
+    // populate unmove for later move unmake
+    unmove.captured_piece = pieces[move.to_square()];
+    unmove.halfmove_clock = halfmove_clock;
+    unmove.fullmove_num = fullmove_num;
+    unmove.castling_rights = castling_rights;
+    unmove.en_passant_square = en_passant_square;
+
+    // halfmove clock 
+    if (pieces[move.to_square] != Pieces::NOPIECE || pieces[move.from_square] == Pieces::WPAWN || pieces[move.from_square] == Pieces::BPAWN) {
+        halfmove_clock = 0;
+    } else {
+        halfmove_clock++;
+    }
+
     // perform the basic from-to move. Additional conditions will be handled below
+
     pieces[move.to_square()] = pieces[move.from_square()];
     pieces[move.from_square()] = Pieces::NOPIECE;
 
     // handle castle
     if (move.is_castle) {
         if (side_to_move == Colors::WHITE) {
-            white_castling_rights_kingside = false;
-            white_castling_rights_queenside = false;
+            castling_rights.white_kingside = false;
+            castling_rights.white_queenside = false;
         } else {
-            black_castling_rights_kingside = false;
-            black_castling_rights_queenside = false;
+            castling_rights.black_kingside = false;
+            castling_rights.black_queenside = false;
         }
         // if white kingside castle, move the rook as well
         if (move.to_square == "g1") {
@@ -126,6 +146,32 @@ void Position::make_move(Move move) {
         } else {
             pieces(move.to_square.file(), move.to_square.rank() + 1) = Pieces::NOPIECE;
         }
+    }
+
+    // handle checks 
+    if (move.is_check) {
+        if (side_to_move == Colors::WHITE) {
+            black_check = true;
+        } else {
+            white_check = true;
+        }
+    }
+
+    // update ep_square if applicable 
+    if (pieces[move.to_square()] == Pieces::WPAWN && move.to_square.rank() == 3) {
+        en_passant_square = Square(move.to_square.file(), 2);
+    } else if (pieces[move.to_square()] == Pieces::BPAWN && move.to_square.rank() == 4) {
+        en_passant_square = Square(move.to_square.file(), 5);
+    } else {
+        en_passant_square = Square(-1);
+    }
+
+    // side to move, fullmove clock
+    if (side_to_move == Colors::WHITE) {
+        side_to_move = Colors::BLACK;
+    } else {
+        side_to_move = Colors::WHITE;
+        fullmove_num++;
     }
 
 }
