@@ -2,21 +2,21 @@
 #include <string>
 
 #include "PieceVector.h"
-#include "Pieces.h"
+#include "Piece.h"
 #include "Square.h"
 
-Pieces& PieceVector::operator() (uint8_t file, uint8_t rank) {
+Piece& PieceVector::operator() (uint8_t file, uint8_t rank) {
     // convert file and rank to index and return the piece at that index. 
     int index = (int) (rank * 8 + file);
     return this->at(index);
 }
 
-Pieces& PieceVector::operator()(const Square& square) {
+Piece& PieceVector::operator()(const Square& square) {
     // convert file and rank to index and return the piece at that index. 
     return this->at(square());
 }
 
-Pieces& PieceVector::operator[](std::string sq_str) {
+Piece& PieceVector::operator[](std::string sq_str) {
     // convert from string format "a1", "e4", etc. to index and return the piece at that index. 
     if (sq_str.length() != 2) {
         throw Exceptions::InvalidSquareException();
@@ -26,7 +26,7 @@ Pieces& PieceVector::operator[](std::string sq_str) {
     return (*this)(file, rank);
 }
 
-Pieces& PieceVector::operator[](const Square& square) {
+Piece& PieceVector::operator[](const Square& square) {
     // convert from string format "a1", "e4", etc. to index and return the piece at that index. 
     return (*this)(square);
 }

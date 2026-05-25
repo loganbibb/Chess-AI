@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "Pieces.h"
+#include "Piece.h"
 #include "Square.h"
 
 struct Move {
@@ -13,5 +13,5 @@ struct Move {
     bool is_promotion = false;
     bool is_en_passant = false;
 
-    Pieces promotion_piece = Pieces::NOPIECE; // only used if is_promotion is true
+    Piece promotion_piece = Piece::NOPIECE; // only used if is_promotion is true
 };

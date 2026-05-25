@@ -48,7 +48,7 @@ namespace Exceptions {
 
     class InvalidPieceException : public Exception {
     public:
-        InvalidPieceException(const std::string& message = "Invalid piece. Piece must be one of the defined pieces in the Pieces enum.", int line_number = -1)
+        InvalidPieceException(const std::string& message = "Invalid piece. Piece must be one of the defined pieces in the Piece enum.", int line_number = -1)
             : Exception(message, line_number) {}
         std::string& what() override {
             return msg;

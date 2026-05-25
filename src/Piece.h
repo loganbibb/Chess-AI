@@ -2,7 +2,7 @@
 
 #include <string> 
 
-enum class Pieces {
+enum class Piece {
     // create enum class for pieces with negative values for black pieces and positive values for white pieces.
     NOPIECE = 0,
     BPAWN = -1,
@@ -24,4 +24,4 @@ enum class Colors {
     BLACK
 };
 
-std::string piece_to_string(const Pieces& piece);
+std::string piece_to_string(const Piece& piece);

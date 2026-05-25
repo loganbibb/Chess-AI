@@ -2,7 +2,7 @@
 #include <iomanip>
 
 #include "Move.h"
-#include "Pieces.h"
+#include "Piece.h"
 #include "Position.h"
 #include "Unmove.h"
 
@@ -15,31 +15,31 @@ Position::Position(){
 void Position::setup_starting_position() {
     // add pieces to board in starting positions
     // board is ordered from a1 to h8, with a1 being index 0 and h8 being index 63.
-    pieces.resize(64, Pieces::NOPIECE); // 8x8 board has 64 squares. Initialize all squares to NOPIECE first.
+    pieces.resize(64, Piece::NOPIECE); // 8x8 board has 64 squares. Initialize all squares to NOPIECE first.
     // white pieces 
-    pieces[0] = Pieces::WROOK; 
-    pieces[1] = Pieces::WKNIGHT;
-    pieces[2] = Pieces::WBISHOP;
-    pieces[3] = Pieces::WQUEEN;
-    pieces[4] = Pieces::WKING;
-    pieces[5] = Pieces::WBISHOP;
-    pieces[6] = Pieces::WKNIGHT;
-    pieces[7] = Pieces::WROOK;
+    pieces[0] = Piece::WROOK; 
+    pieces[1] = Piece::WKNIGHT;
+    pieces[2] = Piece::WBISHOP;
+    pieces[3] = Piece::WQUEEN;
+    pieces[4] = Piece::WKING;
+    pieces[5] = Piece::WBISHOP;
+    pieces[6] = Piece::WKNIGHT;
+    pieces[7] = Piece::WROOK;
     for (int i = 8; i < 16; i++) {
-        pieces[i] = Pieces::WPAWN;
+        pieces[i] = Piece::WPAWN;
     }
 
     // black pieces
-    pieces[56] = Pieces::BROOK;
-    pieces[57] = Pieces::BKNIGHT;
-    pieces[58] = Pieces::BBISHOP;
-    pieces[59] = Pieces::BQUEEN;
-    pieces[60] = Pieces::BKING;
-    pieces[61] = Pieces::BBISHOP;
-    pieces[62] = Pieces::BKNIGHT;
-    pieces[63] = Pieces::BROOK;
+    pieces[56] = Piece::BROOK;
+    pieces[57] = Piece::BKNIGHT;
+    pieces[58] = Piece::BBISHOP;
+    pieces[59] = Piece::BQUEEN;
+    pieces[60] = Piece::BKING;
+    pieces[61] = Piece::BBISHOP;
+    pieces[62] = Piece::BKNIGHT;
+    pieces[63] = Piece::BROOK;
     for (int i = 48; i < 56; i++) {
-        pieces[i] = Pieces::BPAWN;
+        pieces[i] = Piece::BPAWN;
     }
 
 }
@@ -89,7 +89,7 @@ void Position::make_move(Move& move, Unmove& unmove) {
     unmove.en_passant_square = en_passant_square;
 
     // halfmove clock 
-    if (pieces[move.to_square] != Pieces::NOPIECE || pieces[move.from_square] == Pieces::WPAWN || pieces[move.from_square] == Pieces::BPAWN) {
+    if (pieces[move.to_square] != Piece::NOPIECE || pieces[move.from_square] == Piece::WPAWN || pieces[move.from_square] == Piece::BPAWN) {
         halfmove_num = 0;
     } else {
         halfmove_num++;
@@ -98,7 +98,7 @@ void Position::make_move(Move& move, Unmove& unmove) {
     // perform the basic from-to move. Additional conditions will be handled below
 
     pieces[move.to_square()] = pieces[move.from_square()];
-    pieces[move.from_square()] = Pieces::NOPIECE;
+    pieces[move.from_square()] = Piece::NOPIECE;
 
     // handle castle
     if (move.is_castle) {
@@ -111,23 +111,23 @@ void Position::make_move(Move& move, Unmove& unmove) {
         }
         // if white kingside castle, move the rook as well
         if (move.to_square == "g1") {
-            pieces["f1"] = Pieces::WROOK;
-            pieces["h1"] = Pieces::NOPIECE;
+            pieces["f1"] = Piece::WROOK;
+            pieces["h1"] = Piece::NOPIECE;
         }
         // if white queenside castle, move the rook as well
         else if (move.to_square == "c1") {
-            pieces["d1"] = Pieces::WROOK;
-            pieces["a1"] = Pieces::NOPIECE;
+            pieces["d1"] = Piece::WROOK;
+            pieces["a1"] = Piece::NOPIECE;
         }
         // if black kingside castle, move the rook as well
         else if (move.to_square == "g8") {
-            pieces["f8"] = Pieces::BROOK;
-            pieces["h8"] = Pieces::NOPIECE;
+            pieces["f8"] = Piece::BROOK;
+            pieces["h8"] = Piece::NOPIECE;
         }
         // if black queenside castle, move the rook as well
         else if (move.to_square == "c8") {
-            pieces["d8"] = Pieces::BROOK;
-            pieces["a8"] = Pieces::NOPIECE;
+            pieces["d8"] = Piece::BROOK;
+            pieces["a8"] = Piece::NOPIECE;
         }
         else {
             throw Exceptions::InvalidMoveException("Invalid castle move. Castle moves must be to g1, c1, g8, or c8.");
@@ -142,9 +142,9 @@ void Position::make_move(Move& move, Unmove& unmove) {
     // handle en passant
     if (move.is_en_passant) {
         if (side_to_move == Colors::WHITE) {
-            pieces(move.to_square.file(), move.to_square.rank() - 1) = Pieces::NOPIECE;
+            pieces(move.to_square.file(), move.to_square.rank() - 1) = Piece::NOPIECE;
         } else {
-            pieces(move.to_square.file(), move.to_square.rank() + 1) = Pieces::NOPIECE;
+            pieces(move.to_square.file(), move.to_square.rank() + 1) = Piece::NOPIECE;
         }
     }
 
@@ -158,9 +158,9 @@ void Position::make_move(Move& move, Unmove& unmove) {
     }
 
     // update ep_square if applicable 
-    if (pieces[move.to_square()] == Pieces::WPAWN && move.to_square.rank() == 3) {
+    if (pieces[move.to_square()] == Piece::WPAWN && move.to_square.rank() == 3) {
         en_passant_square = Square(move.to_square.file(), 2);
-    } else if (pieces[move.to_square()] == Pieces::BPAWN && move.to_square.rank() == 4) {
+    } else if (pieces[move.to_square()] == Piece::BPAWN && move.to_square.rank() == 4) {
         en_passant_square = Square(move.to_square.file(), 5);
     } else {
         en_passant_square = Square(-1);
