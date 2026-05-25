@@ -1,4 +1,5 @@
 #include <vector>
+#include <stdint.h>
 
 #include "CastlingRights.h"
 #include "Move.h" 
@@ -25,9 +26,9 @@ class Position {
     // en passant target square, if applicable. Otherwise, set to 0.
     Square en_passant_square {-1};
     // halfmove clock for 50-move rule
-    unsigned char halfmove_clock {0};
+    uint8_t halfmove_clock {0};
     // full move number, starting at 1
-    unsigned short fullmove_num {0};
+    uint16_t fullmove_num {0};
 
 
     // functions 

@@ -2,6 +2,8 @@
 
 #include <vector> 
 #include <string>
+#include <stdint.h>
+
 #include "error_types.h"
 #include "Pieces.h"
 #include "Square.h"
@@ -15,7 +17,7 @@ class PieceVector : public std::vector<Pieces> {
     public:
     PieceVector() : std::vector<Pieces>(64, Pieces::NOPIECE) {} // initialize all squares to NOPIECE
     std::string to_string();
-    Pieces& operator()(const char file, const char rank);
+    Pieces& operator()(uint8_t file, uint8_t rank);
     Pieces& operator()(const Square& square);
     Pieces& operator[](std::string sq_str);
     Pieces& operator[](const Square& square);

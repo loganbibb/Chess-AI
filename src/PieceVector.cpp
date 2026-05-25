@@ -1,8 +1,11 @@
+#include <stdint.h>
+#include <string>
+
 #include "PieceVector.h"
 #include "Pieces.h"
 #include "Square.h"
 
-Pieces& PieceVector::operator()(const char file, const char rank) {
+Pieces& PieceVector::operator() (uint8_t file, uint8_t rank) {
     // convert file and rank to index and return the piece at that index. 
     int index = (int) (rank * 8 + file);
     return this->at(index);

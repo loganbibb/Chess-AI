@@ -176,6 +176,8 @@ void Position::make_move(Move& move, Unmove& unmove) {
 
 }
 
+void unmake_move(Move& move, Unmove& unmove) 
+
 void Position::show() {
     // Print out 8x8 board with pieces represented by their enum values.
     // Primarily for debugging. 
