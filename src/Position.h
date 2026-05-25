@@ -26,7 +26,7 @@ class Position {
     // en passant target square, if applicable. Otherwise, set to 0.
     Square en_passant_square {-1};
     // halfmove clock for 50-move rule
-    uint8_t halfmove_clock {0};
+    uint8_t halfmove_num {0};
     // full move number, starting at 1
     uint16_t fullmove_num {0};
 

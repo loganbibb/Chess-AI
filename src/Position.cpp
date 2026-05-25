@@ -83,16 +83,16 @@ void Position::make_move(Move& move, Unmove& unmove) {
 
     // populate unmove for later move unmake
     unmove.captured_piece = pieces[move.to_square()];
-    unmove.halfmove_clock = halfmove_clock;
+    unmove.halfmove_num = halfmove_num;
     unmove.fullmove_num = fullmove_num;
     unmove.castling_rights = castling_rights;
     unmove.en_passant_square = en_passant_square;
 
     // halfmove clock 
     if (pieces[move.to_square] != Pieces::NOPIECE || pieces[move.from_square] == Pieces::WPAWN || pieces[move.from_square] == Pieces::BPAWN) {
-        halfmove_clock = 0;
+        halfmove_num = 0;
     } else {
-        halfmove_clock++;
+        halfmove_num++;
     }
 
     // perform the basic from-to move. Additional conditions will be handled below
