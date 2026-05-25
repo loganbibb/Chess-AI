@@ -12,7 +12,7 @@ class Square{
     easily convert between file/rank (as either uint8_ts or as chars / string) and 
     square index (uint8_t).
     */
-    uint8_t index = 0; // 0-63, where 0 is a1 and 63 is h8
+    uint8_t index = UINT8_MAX; // 0-63, where 0 is a1 and 63 is h8
     public: 
 
     Square(const uint8_t file, const uint8_t rank);
