@@ -64,7 +64,7 @@ std::vector<Position> Position::generate_moves() {
 
     // TODO: implement move generation function
     
-    for (int i = 0; i < pieces.size(); i++) {
+    for (int i = 0; i < (int)pieces.size(); i++) {
 
     }
 
@@ -82,7 +82,8 @@ void Position::make_move(Move& move, Unmove& unmove) {
      */
 
     // populate unmove for later move unmake
-    unmove.captured_piece = pieces[move.to_square()];
+    unmove.captured_piece = pieces[move.to_square];
+    unmove.captured_square = move.to_square;
     unmove.halfmove_num = halfmove_num;
     unmove.fullmove_num = fullmove_num;
     unmove.castling_rights = castling_rights;
@@ -97,8 +98,8 @@ void Position::make_move(Move& move, Unmove& unmove) {
 
     // perform the basic from-to move. Additional conditions will be handled below
 
-    pieces[move.to_square()] = pieces[move.from_square()];
-    pieces[move.from_square()] = Piece::NOPIECE;
+    pieces[move.to_square] = pieces[move.from_square];
+    pieces[move.from_square] = Piece::NOPIECE;
 
     // handle castle
     if (move.is_castle) {
@@ -176,7 +177,7 @@ void Position::make_move(Move& move, Unmove& unmove) {
 
 }
 
-void unmake_move(Move& move, Unmove& unmove) 
+void unmake_move(Move& move, Unmove& unmove);
 
 void Position::show() {
     // Print out 8x8 board with pieces represented by their enum values.

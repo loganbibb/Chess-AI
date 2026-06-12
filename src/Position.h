@@ -24,7 +24,7 @@ class Position {
     bool black_check {false};
     CastlingRights castling_rights;
     // en passant target square, if applicable. Otherwise, set to 0.
-    Square en_passant_square {-1};
+    Square en_passant_square;
     // halfmove clock for 50-move rule
     uint8_t halfmove_num {0};
     // full move number, starting at 1
