@@ -83,7 +83,6 @@ void Position::make_move(Move& move, Unmove& unmove) {
 
     // populate unmove for later move unmake
     unmove.captured_piece = pieces[move.to_square];
-    unmove.captured_square = move.to_square;
     unmove.halfmove_num = halfmove_num;
     unmove.fullmove_num = fullmove_num;
     unmove.castling_rights = castling_rights;
@@ -175,9 +174,64 @@ void Position::make_move(Move& move, Unmove& unmove) {
         fullmove_num++;
     }
 
+    // lastly, update side_to_move
+    side_to_move = (side_to_move == Colors::WHITE)? Colors::BLACK : Colors::WHITE; 
+
 }
 
-void unmake_move(Move& move, Unmove& unmove);
+void Position::unmake_move(Move& move, Unmove& unmove){
+    // return side_to_move
+    side_to_move = (side_to_move == Colors::WHITE)? Colors::BLACK : Colors::WHITE; 
+    // Reset Position from unmove 
+    pieces[move.from_square] = pieces[move.to_square];
+    pieces[move.to_square] = unmove.captured_piece; 
+    halfmove_num = unmove.halfmove_num; 
+    fullmove_num = unmove.fullmove_num; 
+    castling_rights = unmove.castling_rights; 
+    en_passant_square = unmove.en_passant_square; 
+
+    // special conditions 
+    if (move.is_castle) { 
+        // white kingside castle
+        if (move.to_square == "g1") {
+            pieces["f1"] = Piece::NOPIECE;
+            pieces["h1"] = Piece::WROOK;
+        }
+        // white queenside castle
+        else if (move.to_square == "c1") {
+            pieces["d1"] = Piece::NOPIECE;
+            pieces["a1"] = Piece::WROOK;
+        }
+        // black kingside castle
+        else if (move.to_square == "g8") {
+            pieces["f8"] = Piece::NOPIECE;
+            pieces["h8"] = Piece::BROOK;
+        }
+        // black queenside castle
+        else if (move.to_square == "c8") {
+            pieces["d8"] = Piece::NOPIECE;
+            pieces["a8"] = Piece::BROOK;
+        }
+        else {
+            throw Exceptions::InvalidMoveException("Invalid castle move. Castle moves must be to g1, c1, g8, or c8.");
+        }
+    }
+
+    if (move.is_promotion) {
+        // in this case, side_to_move is actually the side the side that made move (updated above)
+        // so piece should match side_to_move
+        pieces[move.from_square] = (side_to_move == Colors::WHITE)? Piece::WPAWN : Piece::BPAWN;  
+    }
+
+    if (move.is_en_passant) {
+        if (side_to_move == Colors::WHITE) {
+            pieces(move.to_square.file(), move.to_square.rank() - 1) = Piece::BPAWN;
+        } else {
+            pieces(move.to_square.file(), move.to_square.rank() + 1) = Piece::WPAWN;
+        }
+        pieces[move.to_square] = Piece::NOPIECE; // override pieces[move.to_square] = unmove.captured_piece; 
+    }
+}
 
 void Position::show() {
     // Print out 8x8 board with pieces represented by their enum values.
