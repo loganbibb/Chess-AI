@@ -2,8 +2,8 @@
 #include <cstring>
 #include <stdint.h>
 
-#include "error_types.h"
-#include "Square.h"
+#include "include/error_types.h"
+#include "include/Square.h"
 
 Square::Square(uint8_t file, uint8_t rank) {
     // file is 0-7, where 0 is a and 7 is h. rank is 0-7, where 0 is 1 and 7 is 8.
@@ -14,9 +14,9 @@ Square::Square(uint8_t new_index) {
     index = new_index;
 }
 
-Square::Square(const char *square_str) {
+Square::Square(const std::string& square_str) {
     // square_str is in the format of "a1", "e4", etc.
-    if (strlen(square_str) != 2) {
+    if (square_str.length() != 2) {
         throw Exceptions::InvalidArgumentException("Invalid square string. Square string must be in the format of 'a1', 'e4', etc.");
     }
     uint8_t file = (uint8_t)(square_str[0] - 'a'); 

@@ -17,13 +17,17 @@ class Square{
 
     Square(const uint8_t file, const uint8_t rank);
     Square(const uint8_t new_index = UINT8_MAX);
-    explicit Square(const char *square_str);
+    explicit Square(const std::string& square_str);
     Square& operator=(const Square& other);
     Square& operator=(const uint8_t& new_index);
     void set_square(const uint8_t file, const uint8_t rank);
     void set_square(const uint8_t new_index);
     inline uint8_t file() const {return index % 8;}
     inline uint8_t rank() const {return index / 8;}
+    inline void inc_file() {index += 1;}
+    inline void dec_file() {index -= 1;}
+    inline void inc_rank() {index += 8;}
+    inline void dec_rank() {index -= 8;}
     uint8_t operator()() const;
     bool operator==(const std::string& other) const;
     bool operator==(const char *other) const;

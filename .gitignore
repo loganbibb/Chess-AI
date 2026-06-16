@@ -35,3 +35,4 @@
 Class Diagram/.$ClassDiagram.drawio.bkp
 *.idea/
 *.vscode/
+/build

@@ -1,10 +1,10 @@
 #include <iostream>
 #include <iomanip>
 
-#include "Move.h"
-#include "Piece.h"
-#include "Position.h"
-#include "Unmove.h"
+#include "include/Move.h"
+#include "include/Piece.h"
+#include "include/Position.h"
+#include "include/Unmove.h"
 
 Position::Position(){
     /* Creates a board with pieces at the starting positions. */
@@ -50,25 +50,60 @@ float Position::get_eval() {
     return eval; 
 }
 
-inline PieceVector Position::get_pieces() {
-    return pieces;
-}
-
 void Position::set_pieces(PieceVector new_pieces) {
     // To be used sparingly, as it does not check for validity of the new position. Primarily for testing purposes.
     pieces = new_pieces;
 }
 
-std::vector<Position> Position::generate_moves() {
-    std::vector<Position> moves;
+std::vector<Move> Position::generate_moves() {
+    std::vector<Move> moves;
 
     // TODO: implement move generation function
-    
+    Piece piece;
+    Square sq; 
+    Square candidate_sq;
     for (int i = 0; i < (int)pieces.size(); i++) {
+        piece = pieces[i];
+        sq = i; 
+        if (piece == Piece::WPAWN) {
+            candidate_sq = sq; 
 
+
+        }
+        else {
+            throw Exceptions::InvalidPieceException("Invalid piece type encountered in generate_moves()");
+        }   
     }
 
     return moves;
+}
+
+void Position::generate_pawn_moves(Square& sq) {
+    std::vector<Move> moves;
+    Square candidate_sq;
+    candidate_sq = sq; 
+
+    // nominal pawn move 
+    candidate_sq.inc_rank(); 
+    if (pieces[candidate_sq] == Piece::NOPIECE) {
+        Move new_move;
+        new_move.from_square = sq; 
+        new_move.to_square = Square(sq.file(), sq.rank() + 1);
+        moves.push_back(new_move);
+    }
+    if ((sq.rank() == 2) && (pieces(candidate_sq) == Piece::NOPIECE)) {
+        Move new_move;
+        new_move.from_square = sq; 
+        new_move.to_square = Square(sq.file(), sq.rank() + 1);
+        moves.push_back(new_move);
+    }
+
+
+    // en passant 
+
+    // check for checks 
+
+    // check for promotions
 }
 
 void Position::make_move(Move& move, Unmove& unmove) {

@@ -1,4 +1,4 @@
-#include "Piece.h"
+#include "include/Piece.h"
 
 std::string piece_to_string(const Piece& piece) {
     switch (piece) {

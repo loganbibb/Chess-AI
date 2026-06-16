@@ -1,7 +1,7 @@
 // std includes
 #include <iostream>
 // my files
-#include "Position.h"
+#include "include/Position.h"
 
 using namespace std;
 

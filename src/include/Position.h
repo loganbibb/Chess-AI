@@ -1,3 +1,5 @@
+#pragma once 
+
 #include <vector>
 #include <stdint.h>
 
@@ -7,8 +9,6 @@
 #include "PieceVector.h"
 #include "Square.h"
 #include "Unmove.h"
-
-#pragma once 
 
 class Position {
     /*
@@ -36,9 +36,10 @@ class Position {
 public:
     Position();
     float get_eval();
-    inline PieceVector get_pieces();
+    inline PieceVector& get_pieces() {return pieces;};
     void set_pieces(PieceVector new_pieces);
-    std::vector<Position> generate_moves();
+    void generate_pawn_moves(Square& sq);
+    std::vector<Move> generate_moves();
     void make_move(Move& move, Unmove& unmove);
     void unmake_move(Move& move, Unmove& unmove);
     void show();
