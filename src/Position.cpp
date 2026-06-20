@@ -55,55 +55,168 @@ void Position::set_pieces(PieceVector new_pieces) {
     pieces = new_pieces;
 }
 
+void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
+    /*
+     * Handle pawn move generation. 
+     * Generates a series of moves for a pawn at the given square, including normal moves, captures, en passant, and promotions.
+     * Returns a vector of Moves.
+     * NOTE: this function does not check for checks, so it may generate illegal moves. This is intentional, as it allows for 
+     * faster move generation. The legality of moves will be checked in generate_moves().
+    */
+    Square candidate_sq;
+    candidate_sq = sq; 
+    std::vector<Move> pawn_moves;
+
+    if (get_piece_color(pieces[sq]) == Colors::WHITE) {
+        // nominal pawn move 
+        candidate_sq.inc_rank(); 
+        if (pieces[candidate_sq] == Piece::NOPIECE) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = candidate_sq;
+            new_move.is_castle = false;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            pawn_moves.push_back(new_move);
+
+            candidate_sq.inc_rank();
+            if ((sq.rank() == 1) && (pieces(candidate_sq) == Piece::NOPIECE)) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                pawn_moves.push_back(new_move);
+            }
+        }
+        // captures
+        candidate_sq = sq + 9; // capture to the right
+        if ((candidate_sq.file() <= 7) && (candidate_sq.rank() <= 7) && 
+            (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                pawn_moves.push_back(new_move);
+        }
+        candidate_sq = sq + 7; // capture to the left
+        if ((candidate_sq.file() >= 0) && (candidate_sq.rank() <= 7) && 
+            (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                pawn_moves.push_back(new_move);
+        }
+
+        // en passant capture
+        if (en_passant_square() >= 0 && en_passant_square() < 64) { // check if en passant square is valid
+            if ((pieces[en_passant_square] == Piece::BPAWN) && 
+                ((en_passant_square.file() == sq.file() + 1) || (en_passant_square.file() == sq.file() - 1)) &&
+                (en_passant_square.rank() == sq.rank() + 1)) {
+                    Move new_move;
+                    new_move.from_square = sq;
+                    new_move.to_square = en_passant_square;
+                    new_move.is_en_passant = true;
+                    pawn_moves.push_back(new_move);
+                }
+        }
+
+    }
+    else if (get_piece_color(pieces[sq]) == Colors::BLACK) { 
+        // nominal pawn move 
+        candidate_sq.dec_rank(); 
+        if (pieces[candidate_sq] == Piece::NOPIECE) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = candidate_sq;
+            new_move.is_castle = false;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            pawn_moves.push_back(new_move);
+
+            candidate_sq.dec_rank();
+            if ((sq.rank() == 6) && (pieces[candidate_sq] == Piece::NOPIECE)) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                pawn_moves.push_back(new_move);
+            }
+        }
+        // captures
+        candidate_sq = sq - 9; // capture to the right
+        if ((candidate_sq.file() >= 0) && (candidate_sq.rank() >= 0) && 
+            (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                pawn_moves.push_back(new_move);
+        }
+        candidate_sq = sq - 7; // capture to the left
+        if ((candidate_sq.file() <= 7) && (candidate_sq.rank() >= 0) && 
+            (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                pawn_moves.push_back(new_move);
+        }
+
+        // en passant capture
+        if (en_passant_square() >= 0 && en_passant_square() < 64) { // check if en passant square is valid
+            if ((pieces[en_passant_square] == Piece::WPAWN) && 
+                ((en_passant_square.file() == sq.file() + 1) || (en_passant_square.file() == sq.file() - 1)) &&
+                (en_passant_square.rank() == sq.rank() - 1)) {
+                    Move new_move;
+                    new_move.from_square = sq;
+                    new_move.to_square = en_passant_square;
+                    new_move.is_en_passant = true;
+                    pawn_moves.push_back(new_move);
+                }
+        }
+    }
+
+    // check for promotions at the end of move generation, and add promotion moves if applicable.
+    for (Move& move : pawn_moves) {
+        if ((move.to_square.rank() == 7) && (side_to_move == Colors::WHITE)) {
+            move.is_promotion = true;
+            move.promotion_piece = Piece::WQUEEN; // for now, only generate queen promotions. TODO: add underpromotions.
+        }
+        else if ((move.to_square.rank() == 0) && (side_to_move == Colors::BLACK)) {
+            move.is_promotion = true;
+            move.promotion_piece = Piece::BQUEEN; // for now, only generate queen promotions. TODO: add underpromotions.
+        }
+    }
+
+    // add generated pawn moves to moves vector
+    moves.insert(moves.end(), pawn_moves.begin(), pawn_moves.end());
+}
+
 std::vector<Move> Position::generate_moves() {
     std::vector<Move> moves;
 
-    // TODO: implement move generation function
-    Piece piece;
-    Square sq; 
-    Square candidate_sq;
-    for (int i = 0; i < (int)pieces.size(); i++) {
-        piece = pieces[i];
-        sq = i; 
-        if (piece == Piece::WPAWN) {
-            candidate_sq = sq; 
-
-
+    // TODO: implement move generation for all pieces. For now, only implement pawn move generation as a proof of concept.
+    for (int i = 0; i < 64; i++) {
+        if (pieces[i] == Piece::WPAWN || pieces[i] == Piece::BPAWN) {
+            Square sq(i);
+            generate_pawn_moves(sq, moves);
         }
-        else {
-            throw Exceptions::InvalidPieceException("Invalid piece type encountered in generate_moves()");
-        }   
     }
 
     return moves;
-}
-
-void Position::generate_pawn_moves(Square& sq) {
-    std::vector<Move> moves;
-    Square candidate_sq;
-    candidate_sq = sq; 
-
-    // nominal pawn move 
-    candidate_sq.inc_rank(); 
-    if (pieces[candidate_sq] == Piece::NOPIECE) {
-        Move new_move;
-        new_move.from_square = sq; 
-        new_move.to_square = Square(sq.file(), sq.rank() + 1);
-        moves.push_back(new_move);
-    }
-    if ((sq.rank() == 2) && (pieces(candidate_sq) == Piece::NOPIECE)) {
-        Move new_move;
-        new_move.from_square = sq; 
-        new_move.to_square = Square(sq.file(), sq.rank() + 1);
-        moves.push_back(new_move);
-    }
-
-
-    // en passant 
-
-    // check for checks 
-
-    // check for promotions
 }
 
 void Position::make_move(Move& move, Unmove& unmove) {
@@ -198,7 +311,7 @@ void Position::make_move(Move& move, Unmove& unmove) {
     } else if (pieces[move.to_square()] == Piece::BPAWN && move.to_square.rank() == 4) {
         en_passant_square = Square(move.to_square.file(), 5);
     } else {
-        en_passant_square = Square(-1);
+        en_passant_square = Square(); // Square constructor defaults to index = UINT8_MAX, which we will use to represent no en passant square.
     }
 
     // side to move, fullmove clock
@@ -274,3 +387,7 @@ void Position::show() {
     std::cout << pieces.to_string() << std::endl;
 }
 
+bool is_check(Position& pos, Colors color) {
+    // TODO: implement check detection function. This will be necessary for move generation and for evaluating positions.
+    return false;
+};

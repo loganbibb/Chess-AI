@@ -30,15 +30,15 @@ class Position {
     // full move number, starting at 1
     uint16_t fullmove_num {0};
 
-
     // functions 
     void setup_starting_position();
+    void generate_pawn_moves(Square& sq, std::vector<Move>& moves);
+    friend bool is_check(Position& pos, Colors color);
 public:
     Position();
     float get_eval();
     inline PieceVector& get_pieces() {return pieces;};
     void set_pieces(PieceVector new_pieces);
-    void generate_pawn_moves(Square& sq);
     std::vector<Move> generate_moves();
     void make_move(Move& move, Unmove& unmove);
     void unmake_move(Move& move, Unmove& unmove);

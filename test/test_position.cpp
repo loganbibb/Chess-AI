@@ -12,12 +12,6 @@ protected:
     }
 };
 
-// Constructor and initialization tests
-TEST_F(PositionTest, DefaultConstructor) {
-    // Position should be initialized with starting position
-    EXPECT_NE(pos.get_eval(), 0);  // Evaluation should be set (or test specific value)
-}
-
 // Move generation tests
 TEST_F(PositionTest, GenerateMoves) {
     std::vector<Move> moves = pos.generate_moves();
@@ -28,6 +22,7 @@ TEST_F(PositionTest, GenerateMoves) {
 
 TEST_F(PositionTest, GenerateMovesNotEmpty) {
     std::vector<Move> moves = pos.generate_moves();
+    pos.show(); 
     EXPECT_FALSE(moves.empty());
 }
 

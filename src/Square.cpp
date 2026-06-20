@@ -45,10 +45,6 @@ void Square::set_square(uint8_t new_index) {
     index = new_index;
 }
 
-uint8_t Square::operator()() const {
-    return index;
-}
-
 bool Square::operator==(const std::string& other) const {
     // other is in the format of "a1", "e4", etc.
     if (other.length() != 2) {
@@ -67,10 +63,6 @@ bool Square::operator==(const char *other) const {
     uint8_t other_file = (uint8_t)(other[0] - 'a'); 
     uint8_t other_rank = (uint8_t)(other[1] - '1'); 
     return file() == other_file && rank() == other_rank;
-}
-
-bool Square::operator==(const Square& other) const {
-    return index == other.index;
 }
 
 Square::operator int() const { return index; }

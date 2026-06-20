@@ -28,10 +28,11 @@ class Square{
     inline void dec_file() {index -= 1;}
     inline void inc_rank() {index += 8;}
     inline void dec_rank() {index -= 8;}
-    uint8_t operator()() const;
+    inline uint8_t operator()() const {return index;};
     bool operator==(const std::string& other) const;
     bool operator==(const char *other) const;
-    bool operator==(const Square& other) const;
+    inline bool operator==(const Square& other) const {return index == other.index;};
+    inline bool operator==(const uint8_t& other) const {return index == other;};
     operator int() const;
     std::string to_string() const;
 

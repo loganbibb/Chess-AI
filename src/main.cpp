@@ -7,5 +7,6 @@ using namespace std;
 
 int main() {
     Position pos;
+    auto moves = pos.generate_moves();
     pos.show();
 }
