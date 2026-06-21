@@ -291,6 +291,82 @@ void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) {
     }
 }
 
+void Position::generate_queen_moves(Square& sq, std::vector<Move>& moves) {
+    // queen moves are just sum of rook and bishop moves
+    generate_bishop_moves(sq, moves);
+    generate_rook_moves(sq, moves);
+}
+
+void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
+    static const std::vector<std::pair<int, int>> king_move_offsets = {
+        {1, 1}, {1, 0}, {1, -1}, 
+        {0, -1}, {-1, -1}, {-1, 0}, 
+        {-1, 1}, {0, 1}
+    };
+
+    Square candidate_sq = sq; 
+    Colors own_color = get_piece_color(pieces[sq]);
+
+    // normal king moves
+    for (const auto& offset : king_move_offsets) {
+        candidate_sq = sq.apply_offset(offset.first, offset.second);
+        if (candidate_sq.in_bounds() && (pieces[candidate_sq] == Piece::NOPIECE || get_piece_color(pieces[candidate_sq]) != own_color)) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = candidate_sq;
+            new_move.is_castle = false;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            moves.push_back(new_move);
+        }
+    }
+
+    // castling moves
+    // Note: pseudo-legal castling moves are generated here. 
+    // Only check if there are pieces in the way and if the king and rook have castling rights. 
+    // Check conditions will be handled in generate_moves() to avoid unnecessary checks during move generation.
+    if (side_to_move == Colors::WHITE) {
+        if (castling_rights.white_kingside && pieces["f1"] == Piece::NOPIECE && pieces["g1"] == Piece::NOPIECE) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = Square("g1");
+            new_move.is_castle = true;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            moves.push_back(new_move);
+        }
+        if (castling_rights.white_queenside && pieces["b1"] == Piece::NOPIECE && pieces["c1"] == Piece::NOPIECE && pieces["d1"] == Piece::NOPIECE) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = Square("c1");
+            new_move.is_castle = true;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            moves.push_back(new_move);
+        }
+    }
+    else { // black to move 
+        if (castling_rights.black_kingside && pieces["f8"] == Piece::NOPIECE && pieces["g8"] == Piece::NOPIECE) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = Square("g8");
+            new_move.is_castle = true;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            moves.push_back(new_move);
+        }
+        if (castling_rights.black_queenside && pieces["b8"] == Piece::NOPIECE && pieces["c8"] == Piece::NOPIECE && pieces["d8"] == Piece::NOPIECE) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = Square("c8");
+            new_move.is_castle = true;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            moves.push_back(new_move);
+        }
+    }
+
+}
 
 std::vector<Move> Position::generate_moves() {
     std::vector<Move> moves;
@@ -310,6 +386,18 @@ std::vector<Move> Position::generate_moves() {
                 Square sq(i);
                 generate_bishop_moves(sq, moves);
             }
+            else if (pieces[i] == Piece::WROOK) {
+                Square sq(i);
+                generate_rook_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::WQUEEN) {
+                Square sq(i);
+                generate_queen_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::WKING) {
+                Square sq(i);
+                generate_king_moves(sq, moves);
+            }
         }
     }
     else {
@@ -325,6 +413,18 @@ std::vector<Move> Position::generate_moves() {
             else if (pieces[i] == Piece::BBISHOP) {
                 Square sq(i);
                 generate_bishop_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::BROOK) {
+                Square sq(i);
+                generate_rook_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::BQUEEN) {
+                Square sq(i);
+                generate_queen_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::BKING) {
+                Square sq(i);
+                generate_king_moves(sq, moves);
             }
         }
     }
@@ -498,7 +598,8 @@ void Position::show() {
     std::cout << pieces.to_string() << std::endl;
 }
 
-bool is_check(Position& pos, Colors color) {
+bool is_check(Position& pos, Colors color, Square sq) {
     // TODO: implement check detection function. This will be necessary for move generation and for evaluating positions.
     return false;
 };
+
