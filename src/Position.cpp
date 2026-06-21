@@ -205,14 +205,127 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
     moves.insert(moves.end(), pawn_moves.begin(), pawn_moves.end());
 }
 
+void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) {
+    static const std::vector<std::pair<int, int>> knight_move_offsets = {
+        {1, 2}, {2, 1}, {2, -1}, {1, -2}, 
+        {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
+    };
+
+    Square candidate_sq = sq; 
+    Colors own_color = get_piece_color(pieces[sq]);
+    for (const auto& offset : knight_move_offsets) {
+        candidate_sq = sq.apply_offset(offset.first, offset.second);
+        if (candidate_sq.in_bounds() && (pieces[candidate_sq] == Piece::NOPIECE || get_piece_color(pieces[candidate_sq]) != own_color)) {
+            Move new_move;
+            new_move.from_square = sq; 
+            new_move.to_square = candidate_sq;
+            new_move.is_castle = false;
+            new_move.is_promotion = false; 
+            new_move.is_en_passant = false;
+            moves.push_back(new_move);
+        }
+    }
+}
+
+void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) {
+    static const int rank_offsets[] = {1, 1, -1, -1};
+    static const int file_offsets[] = {1, -1, 1, -1};
+    Square candidate_sq = sq;
+    Colors own_color = get_piece_color(pieces[sq]);
+
+    for (int i = 0; i < 4; i++) {
+        candidate_sq = sq;
+        while (true) {
+            candidate_sq = sq.apply_offset(file_offsets[i], rank_offsets[i]);
+            if (!candidate_sq.in_bounds()) {
+                break;
+            }
+            if (get_piece_color(pieces[candidate_sq]) != own_color) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                moves.push_back(new_move);
+                if (pieces[candidate_sq] != Piece::NOPIECE) {
+                    break; // cannot jump over pieces, so stop looking in this direction after a capture
+                }
+            }
+            else { // own piece is blocking
+                break;
+            }
+        }
+    }
+}
+
+void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) {
+    static const int rank_offsets[] = {1, -1, 0, 0};
+    static const int file_offsets[] = {0, 0, 1, -1};
+    Square candidate_sq = sq;
+    Colors own_color = get_piece_color(pieces[sq]);
+
+    for (int i = 0; i < 4; i++) {
+        candidate_sq = sq;
+        while (true) {
+            candidate_sq = sq.apply_offset(file_offsets[i], rank_offsets[i]);
+            if (!candidate_sq.in_bounds()) {
+                break;
+            }
+            if (get_piece_color(pieces[candidate_sq]) != own_color) {
+                Move new_move;
+                new_move.from_square = sq; 
+                new_move.to_square = candidate_sq;
+                new_move.is_castle = false;
+                new_move.is_promotion = false; 
+                new_move.is_en_passant = false;
+                moves.push_back(new_move);
+                if (pieces[candidate_sq] != Piece::NOPIECE) {
+                    break; // cannot jump over pieces, so stop looking in this direction after a capture
+                }
+            }
+            else { // own piece is blocking
+                break;
+            }
+        }
+    }
+}
+
+
 std::vector<Move> Position::generate_moves() {
     std::vector<Move> moves;
 
     // TODO: implement move generation for all pieces. For now, only implement pawn move generation as a proof of concept.
-    for (int i = 0; i < 64; i++) {
-        if (pieces[i] == Piece::WPAWN || pieces[i] == Piece::BPAWN) {
-            Square sq(i);
-            generate_pawn_moves(sq, moves);
+    if (side_to_move == Colors::WHITE) {
+        for (int i = 0; i < 64; i++) {
+            if (pieces[i] == Piece::WPAWN) {
+                Square sq(i);
+                generate_pawn_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::WKNIGHT) {
+                Square sq(i);
+                generate_knight_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::WBISHOP) {
+                Square sq(i);
+                generate_bishop_moves(sq, moves);
+            }
+        }
+    }
+    else {
+        for (int i = 0; i < 64; i++) {
+            if (pieces[i] == Piece::BPAWN) {
+                Square sq(i);
+                generate_pawn_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::BKNIGHT) {
+                Square sq(i);
+                generate_knight_moves(sq, moves);
+            }
+            else if (pieces[i] == Piece::BBISHOP) {
+                Square sq(i);
+                generate_bishop_moves(sq, moves);
+            }
         }
     }
 
@@ -225,8 +338,6 @@ void Position::make_move(Move& move, Unmove& unmove) {
      * Special handling for castling, promotion, and en passant
      * increment halfmove clock, and reset if pawn move or capture
      * Increment fullmove number if white to move
-     * TODO: pass in and populate an undo-state object to allow for unmaking moves. This will be necessary for the search algorithm.
-     * TODO: create an undo-state class
      */
 
     // populate unmove for later move unmake
@@ -311,7 +422,7 @@ void Position::make_move(Move& move, Unmove& unmove) {
     } else if (pieces[move.to_square()] == Piece::BPAWN && move.to_square.rank() == 4) {
         en_passant_square = Square(move.to_square.file(), 5);
     } else {
-        en_passant_square = Square(); // Square constructor defaults to index = UINT8_MAX, which we will use to represent no en passant square.
+        en_passant_square = Square(); // Square constructor defaults to index = INT8_MAX, which we will use to represent no en passant square.
     }
 
     // side to move, fullmove clock

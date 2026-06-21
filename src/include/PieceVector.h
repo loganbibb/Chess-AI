@@ -17,7 +17,7 @@ class PieceVector : public std::vector<Piece> {
     public:
     PieceVector() : std::vector<Piece>(64, Piece::NOPIECE) {} // initialize all squares to NOPIECE
     std::string to_string();
-    Piece& operator()(uint8_t file, uint8_t rank);
+    Piece& operator()(int8_t file, int8_t rank);
     Piece& operator()(const Square& square);
     Piece& operator[](std::string sq_str);
     Piece& operator[](const Square& square);

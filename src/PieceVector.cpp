@@ -5,7 +5,7 @@
 #include "include/Piece.h"
 #include "include/Square.h"
 
-Piece& PieceVector::operator() (uint8_t file, uint8_t rank) {
+Piece& PieceVector::operator() (int8_t file, int8_t rank) {
     // convert file and rank to index and return the piece at that index. 
     int index = (int) (rank * 8 + file);
     return this->at(index);

@@ -12,16 +12,16 @@ protected:
 // Constructor tests
 TEST_F(SquareTest, DefaultConstructor) {
     Square sq;
-    // Default should be invalid (UINT8_MAX)
-    EXPECT_EQ((uint8_t)sq, UINT8_MAX);
+    // Default should be invalid (INT8_MAX)
+    EXPECT_EQ((int8_t)sq, INT8_MAX);
 }
 
 TEST_F(SquareTest, ConstructorWithIndex) {
     Square sq(0);
-    EXPECT_EQ((uint8_t)sq, 0);  // a1
+    EXPECT_EQ((int8_t)sq, 0);  // a1
     
     Square sq2{63};
-    EXPECT_EQ((uint8_t)sq2, 63); // h8
+    EXPECT_EQ((int8_t)sq2, 63); // h8
 }
 
 TEST_F(SquareTest, ConstructorWithFileAndRank) {
@@ -36,10 +36,10 @@ TEST_F(SquareTest, ConstructorWithFileAndRank) {
 
 TEST_F(SquareTest, ConstructorWithString) {
     Square sq("a1");
-    EXPECT_EQ((uint8_t)sq, 0);
+    EXPECT_EQ((int8_t)sq, 0);
     
     Square sq2("h8");
-    EXPECT_EQ((uint8_t)sq2, 63);
+    EXPECT_EQ((int8_t)sq2, 63);
     
     Square sq3("e4");
     EXPECT_EQ(sq3.file(), 4);
@@ -48,12 +48,12 @@ TEST_F(SquareTest, ConstructorWithString) {
 
 // File and rank tests
 TEST_F(SquareTest, FileAndRankConversion) {
-    for (uint8_t file = 0; file < 8; file++) {
-        for (uint8_t rank = 0; rank < 8; rank++) {
+    for (int8_t file = 0; file < 8; file++) {
+        for (int8_t rank = 0; rank < 8; rank++) {
             Square sq(file, rank);
             EXPECT_EQ(sq.file(), file);
             EXPECT_EQ(sq.rank(), rank);
-            EXPECT_EQ((uint8_t)sq, file + rank * 8);
+            EXPECT_EQ((int8_t)sq, file + rank * 8);
         }
     }
 }
@@ -79,11 +79,11 @@ TEST_F(SquareTest, AssignmentOperator) {
     Square sq1(10);
     Square sq2;
     sq2 = sq1;
-    EXPECT_EQ((uint8_t)sq2, 10);
+    EXPECT_EQ((int8_t)sq2, 10);
     
     Square sq3;
     sq3 = 25u;
-    EXPECT_EQ((uint8_t)sq3, 25);
+    EXPECT_EQ((int8_t)sq3, 25);
 }
 
 // Increment/decrement tests
@@ -119,7 +119,7 @@ TEST_F(SquareTest, DecrementRank) {
 TEST_F(SquareTest, SetSquareWithIndex) {
     Square sq;
     sq.set_square(42);
-    EXPECT_EQ((uint8_t)sq, 42);
+    EXPECT_EQ((int8_t)sq, 42);
 }
 
 TEST_F(SquareTest, SetSquareWithFileAndRank) {
@@ -143,8 +143,8 @@ TEST_F(SquareTest, ToStringConversion) {
 
 // Edge cases
 TEST_F(SquareTest, AllBoardSquares) {
-    for (uint8_t i = 0; i < 64; i++) {
+    for (int8_t i = 0; i < 64; i++) {
         Square sq(i);
-        EXPECT_EQ((uint8_t)sq, i);
+        EXPECT_EQ((int8_t)sq, i);
     }
 }

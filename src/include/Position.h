@@ -26,13 +26,18 @@ class Position {
     // en passant target square, if applicable. Otherwise, set to 0.
     Square en_passant_square;
     // halfmove clock for 50-move rule
-    uint8_t halfmove_num {0};
+    int8_t halfmove_num {0};
     // full move number, starting at 1
     uint16_t fullmove_num {0};
 
     // functions 
     void setup_starting_position();
     void generate_pawn_moves(Square& sq, std::vector<Move>& moves);
+    void generate_knight_moves(Square& sq, std::vector<Move>& moves);
+    void generate_bishop_moves(Square& sq, std::vector<Move>& moves);
+    void generate_rook_moves(Square& sq, std::vector<Move>& moves);
+    void generate_queen_moves(Square& sq, std::vector<Move>& moves);
+    void generate_king_moves(Square& sq, std::vector<Move>& moves);
     friend bool is_check(Position& pos, Colors color);
 public:
     Position();

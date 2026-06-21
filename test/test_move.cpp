@@ -12,8 +12,8 @@ protected:
 // Constructor and initialization tests
 TEST_F(MoveTest, DefaultConstructor) {
     Move m;
-    EXPECT_EQ((uint8_t)m.from_square, 0);
-    EXPECT_EQ((uint8_t)m.to_square, 0);
+    EXPECT_EQ((int8_t)m.from_square, 0);
+    EXPECT_EQ((int8_t)m.to_square, 0);
     EXPECT_FALSE(m.is_check);
     EXPECT_FALSE(m.is_castle);
     EXPECT_FALSE(m.is_promotion);
@@ -27,8 +27,8 @@ TEST_F(MoveTest, SimpleMove) {
     m.from_square = Square(0);  // a1
     m.to_square = Square(1);    // a2
     
-    EXPECT_EQ((uint8_t)m.from_square, 0);
-    EXPECT_EQ((uint8_t)m.to_square, 1);
+    EXPECT_EQ((int8_t)m.from_square, 0);
+    EXPECT_EQ((int8_t)m.to_square, 1);
     EXPECT_FALSE(m.is_check);
     EXPECT_FALSE(m.is_castle);
 }
@@ -61,8 +61,8 @@ TEST_F(MoveTest, CaptureMove) {
     m.to_square = Square("d5");
     // Captures don't have a dedicated flag in Move struct
     
-    EXPECT_EQ((uint8_t)m.from_square, (uint8_t)Square("e4"));
-    EXPECT_EQ((uint8_t)m.to_square, (uint8_t)Square("d5"));
+    EXPECT_EQ((int8_t)m.from_square, (int8_t)Square("e4"));
+    EXPECT_EQ((int8_t)m.to_square, (int8_t)Square("d5"));
 }
 
 // Castling move tests
@@ -73,8 +73,8 @@ TEST_F(MoveTest, CastlingMove) {
     m.is_castle = true;
     
     EXPECT_TRUE(m.is_castle);
-    EXPECT_EQ((uint8_t)m.from_square, (uint8_t)Square("e1"));
-    EXPECT_EQ((uint8_t)m.to_square, (uint8_t)Square("g1"));
+    EXPECT_EQ((int8_t)m.from_square, (int8_t)Square("e1"));
+    EXPECT_EQ((int8_t)m.to_square, (int8_t)Square("g1"));
 }
 
 TEST_F(MoveTest, CastlingQueenSide) {
@@ -84,8 +84,8 @@ TEST_F(MoveTest, CastlingQueenSide) {
     m.is_castle = true;
     
     EXPECT_TRUE(m.is_castle);
-    EXPECT_EQ((uint8_t)m.from_square, (uint8_t)Square("e1"));
-    EXPECT_EQ((uint8_t)m.to_square, (uint8_t)Square("c1"));
+    EXPECT_EQ((int8_t)m.from_square, (int8_t)Square("e1"));
+    EXPECT_EQ((int8_t)m.to_square, (int8_t)Square("c1"));
 }
 
 // Promotion move tests
@@ -176,8 +176,8 @@ TEST_F(MoveTest, CompareMoves) {
     m2.from_square = Square("e2");
     m2.to_square = Square("e4");
     
-    EXPECT_EQ((uint8_t)m1.from_square, (uint8_t)m2.from_square);
-    EXPECT_EQ((uint8_t)m1.to_square, (uint8_t)m2.to_square);
+    EXPECT_EQ((int8_t)m1.from_square, (int8_t)m2.from_square);
+    EXPECT_EQ((int8_t)m1.to_square, (int8_t)m2.to_square);
 }
 
 // Black piece moves
@@ -186,8 +186,8 @@ TEST_F(MoveTest, BlackPawnMove) {
     m.from_square = Square("e7");
     m.to_square = Square("e5");
     
-    EXPECT_EQ((uint8_t)m.from_square, (uint8_t)Square("e7"));
-    EXPECT_EQ((uint8_t)m.to_square, (uint8_t)Square("e5"));
+    EXPECT_EQ((int8_t)m.from_square, (int8_t)Square("e7"));
+    EXPECT_EQ((int8_t)m.to_square, (int8_t)Square("e5"));
 }
 
 TEST_F(MoveTest, BlackPromotion) {
