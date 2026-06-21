@@ -147,49 +147,499 @@ TEST_F(PositionTest, StartingPositionNotInCheck) {
     EXPECT_FALSE(moves.empty());
 }
 
-// Castling availability tests
-TEST_F(PositionTest, CastlingAvailableAtStart) {
-    // Starting position should have castling available
+// ============================================================================
+// PAWN MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, PawnSinglePushFromStarting) {
+    // White pawn at a2 should be able to move to a3
     std::vector<Move> moves = pos.generate_moves();
     
-    // Check if any castling moves are available (advanced test)
-    bool has_castling = false;
+    bool found_move = false;
     for (const auto& move : moves) {
-        if (move.is_castle) {
-            has_castling = true;
+        if (move.from_square == Square("a2") && move.to_square == Square("a3")) {
+            found_move = true;
             break;
         }
     }
+    EXPECT_TRUE(found_move) << "White pawn at a2 should be able to move to a3";
+}
+
+TEST_F(PositionTest, PawnDoublePushFromStarting) {
+    // White pawn at e2 should be able to move to e4
+    std::vector<Move> moves = pos.generate_moves();
     
-    // At the start, castling is not immediately available (needs pieces to move)
-    // This is just a placeholder; adjust based on your implementation
-}
-
-// En passant tests
-TEST_F(PositionTest, NoEnPassantAtStart) {
-    // Starting position should not have en passant available
-    // (This depends on your internal representation)
-}
-
-// Side to move tests
-TEST_F(PositionTest, WhiteToMoveAtStart) {
-    // Starting position should have white to move
-    // Add assertion based on how you access side_to_move
-}
-
-// Special position tests
-TEST_F(PositionTest, GenerateMovesAfterInitialMove) {
-    std::vector<Move> initial_moves = pos.generate_moves();
-    
-    if (!initial_moves.empty()) {
-        Move first_move = initial_moves[0];
-        Unmove unmove;
-        
-        pos.make_move(first_move, unmove);
-        
-        std::vector<Move> next_moves = pos.generate_moves();
-        
-        // After first move, should still be able to generate moves
-        EXPECT_FALSE(next_moves.empty());
+    bool found_move = false;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e2") && move.to_square == Square("e4")) {
+            found_move = true;
+            break;
+        }
     }
+    EXPECT_TRUE(found_move) << "White pawn at e2 should be able to move to e4";
+}
+
+TEST_F(PositionTest, PawnCaptureMove) {
+    // Set up a custom position: White pawn at e4, Black pawn at d5
+    PieceVector pieces = pos.get_pieces();
+    pieces[Square("e4")] = Piece::WPAWN;
+    pieces[Square("d5")] = Piece::BPAWN;
+    pieces[Square("e2")] = Piece::NOPIECE;  // Remove original pawn
+    pos.set_pieces(pieces);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_capture = false;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e4") && move.to_square == Square("d5")) {
+            found_capture = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_capture) << "White pawn at e4 should be able to capture at d5";
+}
+
+TEST_F(PositionTest, BlackPawnMovement) {
+    // Move white pawn and then check black pawn moves
+    std::vector<Move> white_moves = pos.generate_moves();
+    Move white_move = white_moves[0];  // Move any white piece
+    Unmove unmove;
+    pos.make_move(white_move, unmove);
+    
+    // Now black to move
+    std::vector<Move> black_moves = pos.generate_moves();
+    
+    bool found_black_pawn_move = false;
+    for (const auto& move : black_moves) {
+        if (move.from_square.rank() == 6) {  // Black pawns start at rank 6
+            found_black_pawn_move = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_black_pawn_move) << "Black should have pawn moves available";
+}
+
+TEST_F(PositionTest, PawnPromotionFlag) {
+    // Set up: White pawn at e7, clear the path
+    PieceVector pieces = pos.get_pieces();
+    pieces[Square("e7")] = Piece::WPAWN;
+    pieces[Square("e6")] = Piece::NOPIECE;
+    pieces[Square("e5")] = Piece::NOPIECE;
+    pieces[Square("e4")] = Piece::NOPIECE;
+    pieces[Square("e3")] = Piece::NOPIECE;
+    pieces[Square("e2")] = Piece::NOPIECE;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_promotion = false;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e7") && move.to_square == Square("e8") && move.is_promotion) {
+            found_promotion = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_promotion) << "Pawn should promote when reaching rank 8";
+}
+
+// ============================================================================
+// KNIGHT MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, KnightMovesFromStarting) {
+    // White knight at b1 should have 2 available moves (a3, c3)
+    std::vector<Move> moves = pos.generate_moves();
+    
+    int knight_b1_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("b1")) {
+            knight_b1_moves++;
+        }
+    }
+    EXPECT_EQ(knight_b1_moves, 2);
+}
+
+TEST_F(PositionTest, KnightMovesFromCentralSquare) {
+    // Set up: Isolated white knight at d4
+    PieceVector pieces = pos.get_pieces();
+    // Clear the board except for the knight
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("d4")] = Piece::WKNIGHT;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // Knight at d4 should have 8 possible moves
+    EXPECT_EQ(moves.size(), 8) << "Knight at d4 should have 8 possible moves";
+}
+
+TEST_F(PositionTest, KnightCaptureMove) {
+    // Set up: White knight at e4, black piece at f6
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WKNIGHT;
+    pieces[Square("f6")] = Piece::BPAWN;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_capture = false;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e4") && move.to_square == Square("f6")) {
+            found_capture = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_capture) << "Knight should be able to capture";
+}
+
+TEST_F(PositionTest, KnightBlockedByOwnPiece) {
+    // Set up: White knight at e4, white pawn at f6
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WKNIGHT;
+    pieces[Square("f6")] = Piece::WPAWN;  // Own piece blocks
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_blocked_move = false;
+    for (const auto& move : moves) {
+        if (move.to_square == Square("f6")) {
+            found_blocked_move = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_blocked_move) << "Knight should not move to square occupied by own piece";
+}
+
+// ============================================================================
+// BISHOP MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, BishopMovesFromOpenPosition) {
+    // Set up: White bishop at e4 on empty board
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WBISHOP;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // Bishop at e4 should have 13 available moves (all diagonals)
+    EXPECT_EQ(moves.size(), 13) << "Bishop at e4 should have 13 moves on empty board";
+}
+
+TEST_F(PositionTest, BishopBlockedByPiece) {
+    // Set up: White bishop at a1, white pawn at c3 blocks one diagonal
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("a1")] = Piece::WBISHOP;
+    pieces[Square("c3")] = Piece::WPAWN;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // Check that bishop doesn't move past the blocking pawn
+    bool found_past_block = false;
+    for (const auto& move : moves) {
+        if (move.to_square == Square("d4")) {
+            found_past_block = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_past_block) << "Bishop should not move past blocking piece";
+}
+
+TEST_F(PositionTest, BishopCaptureBlackPiece) {
+    // Set up: White bishop at a1, black piece at c3
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("a1")] = Piece::WBISHOP;
+    pieces[Square("c3")] = Piece::BPAWN;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_capture = false;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("a1") && move.to_square == Square("c3")) {
+            found_capture = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_capture) << "Bishop should be able to capture";
+}
+
+// ============================================================================
+// ROOK MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, RookMovesFromOpenPosition) {
+    // Set up: White rook at e4 on empty board
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WROOK;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // Rook at e4 should have 14 available moves (7 vertical + 7 horizontal)
+    EXPECT_EQ(moves.size(), 14) << "Rook at e4 should have 14 moves on empty board";
+}
+
+TEST_F(PositionTest, RookBlockedByPiece) {
+    // Set up: White rook at a1, white pawn at a3 blocks vertical movement
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("a1")] = Piece::WROOK;
+    pieces[Square("a3")] = Piece::WPAWN;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_past_block = false;
+    for (const auto& move : moves) {
+        if (move.to_square == Square("a4")) {
+            found_past_block = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_past_block) << "Rook should not move past blocking piece";
+}
+
+// ============================================================================
+// QUEEN MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, QueenMovesFromOpenPosition) {
+    // Set up: White queen at e4 on empty board
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WQUEEN;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // Queen at e4 should have 27 available moves (rook + bishop moves)
+    EXPECT_EQ(moves.size(), 27) << "Queen at e4 should have 27 moves on empty board";
+}
+
+// ============================================================================
+// KING MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, KingMovesFromCentralPosition) {
+    // Set up: White king at e4 on empty board
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WKING;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // King at e4 should have 8 available moves
+    EXPECT_EQ(moves.size(), 8) << "King at e4 should have 8 moves";
+}
+
+TEST_F(PositionTest, KingMovesFromCorner) {
+    // Set up: White king at a1 on empty board
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("a1")] = Piece::WKING;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // King at a1 should have 3 available moves
+    EXPECT_EQ(moves.size(), 3) << "King at a1 should have 3 moves";
+}
+
+// ============================================================================
+// CASTLING TESTS
+// ============================================================================
+
+TEST_F(PositionTest, CastlingKingsideNotAvailableWithPieces) {
+    // Starting position - castling should not be available (pieces in the way)
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_castling = false;
+    for (const auto& move : moves) {
+        if (move.is_castle) {
+            found_castling = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_castling) << "Castling should not be available in starting position (pieces in way)";
+}
+
+TEST_F(PositionTest, CastlingKingsideAvailable) {
+    // Set up: White king at e1, white rook at h1, f1 and g1 empty
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("h1")] = Piece::WROOK;
+    pos.set_pieces(pieces);
+    
+    // Set castling rights
+    CastlingRights rights;
+    rights.white_kingside = true;
+    rights.white_queenside = false;
+    rights.black_kingside = false;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_kingside_castle = false;
+    for (const auto& move : moves) {
+        if (move.is_castle && move.to_square == Square("g1")) {
+            found_kingside_castle = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_kingside_castle) << "Kingside castling should be available";
+}
+
+TEST_F(PositionTest, CastlingQueensideAvailable) {
+    // Set up: White king at e1, white rook at a1, b1-d1 empty
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("a1")] = Piece::WROOK;
+    pos.set_pieces(pieces);
+    
+    // Set castling rights
+    CastlingRights rights;
+    rights.white_kingside = false;
+    rights.white_queenside = true;
+    rights.black_kingside = false;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_queenside_castle = false;
+    for (const auto& move : moves) {
+        if (move.is_castle && move.to_square == Square("c1")) {
+            found_queenside_castle = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_queenside_castle) << "Queenside castling should be available";
+}
+
+// ============================================================================
+// EN PASSANT TESTS
+// ============================================================================
+
+TEST_F(PositionTest, EnPassantCaptureAvailable) {
+    // Set up: White pawn at e4, black pawn at d4, en passant square at d3
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e4")] = Piece::WPAWN;
+    pieces[Square("d4")] = Piece::BPAWN;
+    pos.set_pieces(pieces);
+    pos.set_en_passant_square(Square("d3"));
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    bool found_en_passant = false;
+    for (const auto& move : moves) {
+        if (move.is_en_passant && move.from_square == Square("e4") && move.to_square == Square("d3")) {
+            found_en_passant = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_en_passant) << "En passant capture should be available";
+}
+
+// ============================================================================
+// SIDE TO MOVE TESTS
+// ============================================================================
+
+TEST_F(PositionTest, SideToMoveAffectsGeneratedMoves) {
+    // Generate moves for white
+    pos.set_side_to_move(Colors::WHITE);
+    std::vector<Move> white_moves = pos.generate_moves();
+    
+    // All moves should be from white pieces
+    bool all_white = true;
+    for (const auto& move : white_moves) {
+        int square_idx = move.from_square;
+        Piece piece = pos.get_pieces()[square_idx];
+        if (get_piece_color(piece) != Colors::WHITE) {
+            all_white = false;
+            break;
+        }
+    }
+    EXPECT_TRUE(all_white) << "All generated moves should be from white pieces";
+}
+
+// ============================================================================
+// COMPLEX POSITION TESTS
+// ============================================================================
+
+TEST_F(PositionTest, MultiPiecesInteract) {
+    // Set up: Complex position with multiple pieces that interact
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e2")] = Piece::WPAWN;
+    pieces[Square("e4")] = Piece::WPAWN;
+    pieces[Square("d3")] = Piece::WBISHOP;
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("d5")] = Piece::BPAWN;
+    pieces[Square("e5")] = Piece::BPAWN;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+    
+    std::vector<Move> moves = pos.generate_moves();
+    
+    // Should have generated some moves from the various pieces
+    EXPECT_GT(moves.size(), 0) << "Should generate moves from multiple pieces";
 }

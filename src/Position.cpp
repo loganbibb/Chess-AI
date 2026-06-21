@@ -6,10 +6,12 @@
 #include "include/Position.h"
 #include "include/Unmove.h"
 
-Position::Position(){
+Position::Position(bool setup_starting){
     /* Creates a board with pieces at the starting positions. */
     eval = 0;
-    setup_starting_position();
+    if (setup_starting) {
+        setup_starting_position();
+    }
 }
 
 void Position::setup_starting_position() {
