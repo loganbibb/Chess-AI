@@ -21,21 +21,13 @@ enum class Piece {
 };
 
 enum class Colors {
-    WHITE,
-    BLACK,
-    NOCOLOR
+    WHITE = 1,
+    BLACK = -1,
+    NOCOLOR = 0
 };
 
 std::string piece_to_string(const Piece& piece);
 
-inline Colors get_piece_color(const Piece& piece) {
-    if (piece == Piece::NOPIECE) {
-        return Colors::NOCOLOR;
-    }
-    else if(int(piece) > 0) {
-        return Colors::WHITE;
-    }
-    else {
-        return Colors::BLACK;
-    }
-}
+Colors get_piece_color(const Piece& piece); 
+
+Colors get_opposite_color(const Colors& color);

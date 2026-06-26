@@ -84,6 +84,18 @@ TEST_F(PositionTest, ShowPosition) {
     EXPECT_NO_FATAL_FAILURE(pos.show());
 }
 
+TEST_F(PositionTest, PrintMovesEmitsReadableNotation) {
+    std::string output;
+    {
+        testing::internal::CaptureStdout();
+        pos.print_moves();
+        output = testing::internal::GetCapturedStdout();
+    }
+
+    EXPECT_FALSE(output.empty());
+    EXPECT_NE(output.find("e4"), std::string::npos);
+}
+
 // Move making and unmaking tests
 TEST_F(PositionTest, MakeAndUnmakeMove) {
     std::vector<Move> moves = pos.generate_moves();
@@ -142,9 +154,11 @@ TEST_F(PositionTest, MakeMultipleMoves) {
 
 // Check detection tests
 TEST_F(PositionTest, StartingPositionNotInCheck) {
-    // Starting position should not be in check
-    std::vector<Move> moves = pos.generate_moves();
-    EXPECT_FALSE(moves.empty());
+    Square white_king("e1");
+    Square black_king("e8");
+
+    EXPECT_FALSE(pos.is_in_check(white_king, Colors::WHITE));
+    EXPECT_FALSE(pos.is_in_check(black_king, Colors::BLACK));
 }
 
 // ============================================================================
@@ -220,19 +234,17 @@ TEST_F(PositionTest, BlackPawnMovement) {
 }
 
 TEST_F(PositionTest, PawnPromotionFlag) {
-    // Set up: White pawn at e7, clear the path
     PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
     pieces[Square("e7")] = Piece::WPAWN;
-    pieces[Square("e6")] = Piece::NOPIECE;
-    pieces[Square("e5")] = Piece::NOPIECE;
-    pieces[Square("e4")] = Piece::NOPIECE;
-    pieces[Square("e3")] = Piece::NOPIECE;
-    pieces[Square("e2")] = Piece::NOPIECE;
+    pieces[Square("e8")] = Piece::NOPIECE;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
-    
+
     std::vector<Move> moves = pos.generate_moves();
-    
+
     bool found_promotion = false;
     for (const auto& move : moves) {
         if (move.from_square == Square("e7") && move.to_square == Square("e8") && move.is_promotion) {
@@ -240,7 +252,7 @@ TEST_F(PositionTest, PawnPromotionFlag) {
             break;
         }
     }
-    EXPECT_TRUE(found_promotion) << "Pawn should promote when reaching rank 8";
+    EXPECT_TRUE(found_promotion) << "A white pawn on e7 should promote when moving to e8 on an empty board";
 }
 
 // ============================================================================
@@ -425,7 +437,7 @@ TEST_F(PositionTest, RookBlockedByPiece) {
     
     bool found_past_block = false;
     for (const auto& move : moves) {
-        if (move.to_square == Square("a4")) {
+        if (pieces[move.from_square] == Piece::WROOK && move.to_square == Square("a4")) {
             found_past_block = true;
             break;
         }
@@ -582,14 +594,14 @@ TEST_F(PositionTest, EnPassantCaptureAvailable) {
     pieces[Square("e4")] = Piece::WPAWN;
     pieces[Square("d4")] = Piece::BPAWN;
     pos.set_pieces(pieces);
-    pos.set_en_passant_square(Square("d3"));
-    pos.set_side_to_move(Colors::WHITE);
+    pos.set_en_passant_square(Square("e3"));
+    pos.set_side_to_move(Colors::BLACK);
     
     std::vector<Move> moves = pos.generate_moves();
     
     bool found_en_passant = false;
     for (const auto& move : moves) {
-        if (move.is_en_passant && move.from_square == Square("e4") && move.to_square == Square("d3")) {
+        if (move.is_en_passant && move.from_square == Square("d4") && move.to_square == Square("e3")) {
             found_en_passant = true;
             break;
         }

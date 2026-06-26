@@ -71,6 +71,10 @@ Square Square::apply_offset(const int file_offset, const int rank_offset, bool i
         int8_t new_file = file() + file_offset;
         int8_t new_rank = rank() + rank_offset;
         if (new_file < 0 || new_file > 7 || new_rank < 0 || new_rank > 7) {
+            if (inplace) {
+                this->index = INT8_MAX; // set to invalid square if out of bounds
+                return *this;
+            }
             return Square(); // return invalid square if out of bounds
         }
         if (inplace) {

@@ -1,5 +1,7 @@
 #pragma once 
 
+#include <string> 
+
 #include "Piece.h"
 #include "Square.h"
 

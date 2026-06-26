@@ -38,7 +38,6 @@ class Position {
     void generate_rook_moves(Square& sq, std::vector<Move>& moves);
     void generate_queen_moves(Square& sq, std::vector<Move>& moves);
     void generate_king_moves(Square& sq, std::vector<Move>& moves);
-    friend bool is_check(Position& pos, Colors color, Square sq);
 public:
     Position(bool setup_starting = true);
     float get_eval();
@@ -57,6 +56,9 @@ public:
     std::vector<Move> generate_moves();
     void make_move(Move& move, Unmove& unmove);
     void unmake_move(Move& move, Unmove& unmove);
+    void print_moves();
     void show();
+    bool is_square_attacked(Square& sq, Colors attacker);
+    bool is_in_check(Square& king_sq, Colors king_color);
     
 };

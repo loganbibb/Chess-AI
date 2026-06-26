@@ -5,6 +5,7 @@
 #include "include/Piece.h"
 #include "include/Position.h"
 #include "include/Unmove.h"
+#include "include/move_offsets.h"
 
 Position::Position(bool setup_starting){
     /* Creates a board with pieces at the starting positions. */
@@ -93,9 +94,9 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
             }
         }
         // captures
-        candidate_sq = sq + 9; // capture to the right
-        if ((candidate_sq.file() <= 7) && (candidate_sq.rank() <= 7) && 
-            (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
+        candidate_sq = sq.apply_offset(1, 1); // capture to the right
+        if (candidate_sq.in_bounds() && 
+            pieces[candidate_sq] != Piece::NOPIECE && get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
                 Move new_move;
                 new_move.from_square = sq; 
                 new_move.to_square = candidate_sq;
@@ -104,9 +105,9 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
                 new_move.is_en_passant = false;
                 pawn_moves.push_back(new_move);
         }
-        candidate_sq = sq + 7; // capture to the left
-        if ((candidate_sq.file() >= 0) && (candidate_sq.rank() <= 7) && 
-            (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
+        candidate_sq = sq.apply_offset(-1, 1); // capture to the left
+        if (candidate_sq.in_bounds() && 
+            pieces[candidate_sq] != Piece::NOPIECE && get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
                 Move new_move;
                 new_move.from_square = sq; 
                 new_move.to_square = candidate_sq;
@@ -117,10 +118,9 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
         }
 
         // en passant capture
-        if (en_passant_square() >= 0 && en_passant_square() < 64) { // check if en passant square is valid
-            if ((pieces[en_passant_square] == Piece::BPAWN) && 
-                ((en_passant_square.file() == sq.file() + 1) || (en_passant_square.file() == sq.file() - 1)) &&
-                (en_passant_square.rank() == sq.rank() + 1)) {
+        if (en_passant_square.in_bounds()) { // check if en passant square is valid
+            if (((en_passant_square.file() == sq.file() + 1) || (en_passant_square.file() == sq.file() - 1)) &&
+                 (en_passant_square.rank() == sq.rank() + 1)) {
                     Move new_move;
                     new_move.from_square = sq;
                     new_move.to_square = en_passant_square;
@@ -154,8 +154,8 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
             }
         }
         // captures
-        candidate_sq = sq - 9; // capture to the right
-        if ((candidate_sq.file() >= 0) && (candidate_sq.rank() >= 0) && 
+        candidate_sq = sq.apply_offset(-1, -1); // capture to the right
+        if (candidate_sq.in_bounds() && 
             (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
                 Move new_move;
                 new_move.from_square = sq; 
@@ -165,8 +165,8 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
                 new_move.is_en_passant = false;
                 pawn_moves.push_back(new_move);
         }
-        candidate_sq = sq - 7; // capture to the left
-        if ((candidate_sq.file() <= 7) && (candidate_sq.rank() >= 0) && 
+        candidate_sq = sq.apply_offset(1, -1); // capture to the left
+        if (candidate_sq.in_bounds() && 
             (pieces[candidate_sq] != Piece::NOPIECE) && get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
                 Move new_move;
                 new_move.from_square = sq; 
@@ -178,10 +178,9 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
         }
 
         // en passant capture
-        if (en_passant_square() >= 0 && en_passant_square() < 64) { // check if en passant square is valid
-            if ((pieces[en_passant_square] == Piece::WPAWN) && 
-                ((en_passant_square.file() == sq.file() + 1) || (en_passant_square.file() == sq.file() - 1)) &&
-                (en_passant_square.rank() == sq.rank() - 1)) {
+        if (en_passant_square.in_bounds()) { // check if en passant square is valid
+            if (((en_passant_square.file() == sq.file() + 1) || (en_passant_square.file() == sq.file() - 1)) &&
+                 (en_passant_square.rank() == sq.rank() - 1)) {
                     Move new_move;
                     new_move.from_square = sq;
                     new_move.to_square = en_passant_square;
@@ -208,14 +207,9 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
 }
 
 void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) {
-    static const std::vector<std::pair<int, int>> knight_move_offsets = {
-        {1, 2}, {2, 1}, {2, -1}, {1, -2}, 
-        {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
-    };
-
     Square candidate_sq = sq; 
     Colors own_color = get_piece_color(pieces[sq]);
-    for (const auto& offset : knight_move_offsets) {
+    for (const auto& offset : offsets::knight_move_offsets) {
         candidate_sq = sq.apply_offset(offset.first, offset.second);
         if (candidate_sq.in_bounds() && (pieces[candidate_sq] == Piece::NOPIECE || get_piece_color(pieces[candidate_sq]) != own_color)) {
             Move new_move;
@@ -230,15 +224,14 @@ void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) {
 }
 
 void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) {
-    static const int rank_offsets[] = {1, 1, -1, -1};
-    static const int file_offsets[] = {1, -1, 1, -1};
     Square candidate_sq = sq;
     Colors own_color = get_piece_color(pieces[sq]);
 
     for (int i = 0; i < 4; i++) {
         candidate_sq = sq;
+        auto offset = offsets::bishop_move_offsets[i];
         while (true) {
-            candidate_sq = sq.apply_offset(file_offsets[i], rank_offsets[i]);
+            candidate_sq = sq.apply_offset(offset.first, offset.second);
             if (!candidate_sq.in_bounds()) {
                 break;
             }
@@ -257,20 +250,22 @@ void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) {
             else { // own piece is blocking
                 break;
             }
+            // continue to step in the same direction as the offset for the next iteration of the loop
+            offset.first += offsets::bishop_move_offsets[i].first;
+            offset.second += offsets::bishop_move_offsets[i].second;
         }
     }
 }
 
 void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) {
-    static const int rank_offsets[] = {1, -1, 0, 0};
-    static const int file_offsets[] = {0, 0, 1, -1};
     Square candidate_sq = sq;
     Colors own_color = get_piece_color(pieces[sq]);
 
     for (int i = 0; i < 4; i++) {
         candidate_sq = sq;
+        auto offset = offsets::rook_move_offsets[i];
         while (true) {
-            candidate_sq = sq.apply_offset(file_offsets[i], rank_offsets[i]);
+            candidate_sq.apply_offset(offset.first, offset.second, true);
             if (!candidate_sq.in_bounds()) {
                 break;
             }
@@ -300,17 +295,13 @@ void Position::generate_queen_moves(Square& sq, std::vector<Move>& moves) {
 }
 
 void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
-    static const std::vector<std::pair<int, int>> king_move_offsets = {
-        {1, 1}, {1, 0}, {1, -1}, 
-        {0, -1}, {-1, -1}, {-1, 0}, 
-        {-1, 1}, {0, 1}
-    };
+    
 
     Square candidate_sq = sq; 
     Colors own_color = get_piece_color(pieces[sq]);
 
     // normal king moves
-    for (const auto& offset : king_move_offsets) {
+    for (const auto& offset : offsets::king_move_offsets) {
         candidate_sq = sq.apply_offset(offset.first, offset.second);
         if (candidate_sq.in_bounds() && (pieces[candidate_sq] == Piece::NOPIECE || get_piece_color(pieces[candidate_sq]) != own_color)) {
             Move new_move;
@@ -328,7 +319,9 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
     // Only check if there are pieces in the way and if the king and rook have castling rights. 
     // Check conditions will be handled in generate_moves() to avoid unnecessary checks during move generation.
     if (side_to_move == Colors::WHITE) {
-        if (castling_rights.white_kingside && pieces["f1"] == Piece::NOPIECE && pieces["g1"] == Piece::NOPIECE) {
+        if (castling_rights.white_kingside && 
+            pieces["e1"] == Piece::WKING && pieces["h1"] == Piece::WROOK && 
+            pieces["f1"] == Piece::NOPIECE && pieces["g1"] == Piece::NOPIECE) {
             Move new_move;
             new_move.from_square = sq; 
             new_move.to_square = Square("g1");
@@ -337,7 +330,9 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
             new_move.is_en_passant = false;
             moves.push_back(new_move);
         }
-        if (castling_rights.white_queenside && pieces["b1"] == Piece::NOPIECE && pieces["c1"] == Piece::NOPIECE && pieces["d1"] == Piece::NOPIECE) {
+        if (castling_rights.white_queenside && 
+            pieces["e1"] == Piece::WKING && pieces["a1"] == Piece::WROOK && 
+            pieces["b1"] == Piece::NOPIECE && pieces["c1"] == Piece::NOPIECE && pieces["d1"] == Piece::NOPIECE) {
             Move new_move;
             new_move.from_square = sq; 
             new_move.to_square = Square("c1");
@@ -348,7 +343,9 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
         }
     }
     else { // black to move 
-        if (castling_rights.black_kingside && pieces["f8"] == Piece::NOPIECE && pieces["g8"] == Piece::NOPIECE) {
+        if (castling_rights.black_kingside && 
+            pieces["e8"] == Piece::WKING && pieces["h8"] == Piece::WROOK && 
+            pieces["f8"] == Piece::NOPIECE && pieces["g8"] == Piece::NOPIECE) {
             Move new_move;
             new_move.from_square = sq; 
             new_move.to_square = Square("g8");
@@ -357,7 +354,9 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
             new_move.is_en_passant = false;
             moves.push_back(new_move);
         }
-        if (castling_rights.black_queenside && pieces["b8"] == Piece::NOPIECE && pieces["c8"] == Piece::NOPIECE && pieces["d8"] == Piece::NOPIECE) {
+        if (castling_rights.black_queenside && 
+            pieces["e8"] == Piece::WKING && pieces["a8"] == Piece::WROOK && 
+            pieces["b8"] == Piece::NOPIECE && pieces["c8"] == Piece::NOPIECE && pieces["d8"] == Piece::NOPIECE) {
             Move new_move;
             new_move.from_square = sq; 
             new_move.to_square = Square("c8");
@@ -528,15 +527,10 @@ void Position::make_move(Move& move, Unmove& unmove) {
     }
 
     // side to move, fullmove clock
+    side_to_move = get_opposite_color(side_to_move);
     if (side_to_move == Colors::WHITE) {
-        side_to_move = Colors::BLACK;
-    } else {
-        side_to_move = Colors::WHITE;
         fullmove_num++;
     }
-
-    // lastly, update side_to_move
-    side_to_move = (side_to_move == Colors::WHITE)? Colors::BLACK : Colors::WHITE; 
 
 }
 
@@ -594,14 +588,193 @@ void Position::unmake_move(Move& move, Unmove& unmove){
     }
 }
 
+void Position::print_moves() {
+    std::vector<Move> moves = generate_moves();
+
+    for (const Move& move : moves) {
+        std::string notation;
+
+        if (move.is_castle) {
+            notation = (move.to_square == "g1" || move.to_square == "g8") ? "O-O" : "O-O-O";
+        } else {
+            Piece moving_piece = pieces[move.from_square];
+            bool is_capture = move.is_en_passant || pieces[move.to_square] != Piece::NOPIECE;
+
+            switch (moving_piece) {
+                case Piece::WKNIGHT:
+                case Piece::BKNIGHT:
+                    notation += "N";
+                    break;
+                case Piece::WBISHOP:
+                case Piece::BBISHOP:
+                    notation += "B";
+                    break;
+                case Piece::WROOK:
+                case Piece::BROOK:
+                    notation += "R";
+                    break;
+                case Piece::WQUEEN:
+                case Piece::BQUEEN:
+                    notation += "Q";
+                    break;
+                case Piece::WKING:
+                case Piece::BKING:
+                    notation += "K";
+                    break;
+                default:
+                    break;
+            }
+
+            if (moving_piece == Piece::WPAWN || moving_piece == Piece::BPAWN) {
+                if (is_capture) {
+                    notation = move.from_square.to_string().substr(0, 1) + "x" + move.to_square.to_string();
+                } else {
+                    notation = move.to_square.to_string();
+                }
+            } else {
+                if (is_capture) {
+                    notation += "x";
+                }
+                notation += move.to_square.to_string();
+            }
+
+            if (move.is_promotion) {
+                char promotion_char = 'q';
+                if (move.promotion_piece == Piece::WROOK || move.promotion_piece == Piece::BROOK) {
+                    promotion_char = 'r';
+                } else if (move.promotion_piece == Piece::WBISHOP || move.promotion_piece == Piece::BBISHOP) {
+                    promotion_char = 'b';
+                } else if (move.promotion_piece == Piece::WKNIGHT || move.promotion_piece == Piece::BKNIGHT) {
+                    promotion_char = 'n';
+                }
+                notation += "=" + std::string(1, promotion_char);
+            }
+
+            if (move.is_check) {
+                notation += "+";
+            }
+        }
+
+        std::cout << notation << std::endl;
+    }
+}
+
 void Position::show() {
     // Print out 8x8 board with pieces represented by their enum values.
     // Primarily for debugging. 
     std::cout << pieces.to_string() << std::endl;
 }
 
-bool is_check(Position& pos, Colors color, Square sq) {
-    // TODO: implement check detection function. This will be necessary for move generation and for evaluating positions.
-    return false;
-};
+bool Position::is_square_attacked(Square& sq, Colors attacker) {
+    if (attacker == Colors::WHITE) {
+        // check for white pawn attacks
+        if (sq.file() > 0 && sq.rank() < 7 && pieces(sq.file() - 1, sq.rank() + 1) == Piece::WPAWN) {
+            return true;
+        }
+        if (sq.file() < 7 && sq.rank() < 7 && pieces(sq.file() + 1, sq.rank() + 1) == Piece::WPAWN) {
+            return true;
+        }
+        for (const auto& offset : offsets::knight_move_offsets) {
+            Square candidate_sq = sq.apply_offset(offset.first, offset.second);
+            if (candidate_sq.in_bounds() && pieces[candidate_sq] == Piece::WKNIGHT) {
+                return true;
+            }
+        }
+        for (const auto& offset : offsets::king_move_offsets) {
+            Square candidate_sq = sq.apply_offset(offset.first, offset.second);
+            if (candidate_sq.in_bounds() && pieces[candidate_sq] == Piece::WKING) {
+                return true;
+            }
+        }
+        Square candidate_sq = sq;
+        std::pair<int, int> offset;
+        for (int i = 0; i < 4; i++) {
+            candidate_sq = sq;
+            offset = offsets::bishop_move_offsets[i];
+            while (true) {
+                candidate_sq.apply_offset(offset.first, offset.second, true);
+                if (!candidate_sq.in_bounds()) {
+                    break;
+                }
+                if (get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
+                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
+                }
+                else if (pieces[candidate_sq] == Piece::WBISHOP || pieces[candidate_sq] == Piece::WQUEEN) {
+                    return true; // attacked by bishop or queen in this direction
+                }
+            }
+            candidate_sq = sq;
+            offset = offsets::rook_move_offsets[i];
+            while (true) {
+                candidate_sq.apply_offset(offset.first, offset.second, true);
+                if (!candidate_sq.in_bounds()) {
+                    break;
+                }
+                if (get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
+                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
+                }
+                else if (pieces[candidate_sq] == Piece::WROOK || pieces[candidate_sq] == Piece::WQUEEN) {
+                    return true; // attacked by rook or queen in this direction
+                }
+            }
+        }
+    } 
+    else if (attacker == Colors::BLACK) {
+        // check for black pawn attacks
+        if (sq.file() > 0 && sq.rank() > 0 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::BPAWN) {
+            return true;
+        }
+        if (sq.file() < 7 && sq.rank() > 0 && pieces(sq.file() + 1, sq.rank() - 1) == Piece::BPAWN) {
+            return true;
+        }
+        for (const auto& offset : offsets::knight_move_offsets) {
+            Square candidate_sq = sq.apply_offset(offset.first, offset.second);
+            if (candidate_sq.in_bounds() && pieces[candidate_sq] == Piece::BKNIGHT) {
+                return true;
+            }
+        }
+        for (const auto& offset : offsets::king_move_offsets) {
+            Square candidate_sq = sq.apply_offset(offset.first, offset.second);
+            if (candidate_sq.in_bounds() && pieces[candidate_sq] == Piece::BKING) {
+                return true;
+            }
+        }
+        Square candidate_sq = sq;
+        std::pair<int, int> offset;
+        for (int i = 0; i < 4; i++) {
+            candidate_sq = sq;
+            offset = offsets::bishop_move_offsets[i];
+            while (true) {
+                candidate_sq.apply_offset(offset.first, offset.second, true);
+                if (!candidate_sq.in_bounds()) {
+                    break;
+                }
+                if (get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
+                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
+                }
+                else if (pieces[candidate_sq] == Piece::BBISHOP || pieces[candidate_sq] == Piece::BQUEEN) {
+                    return true; // attacked by bishop or queen in this direction
+                }
+            }
+            candidate_sq = sq;
+            offset = offsets::rook_move_offsets[i];
+            while (true) {
+                candidate_sq.apply_offset(offset.first, offset.second, true);
+                if (!candidate_sq.in_bounds()) {
+                    break;
+                }
+                if (get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
+                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
+                }
+                else if (pieces[candidate_sq] == Piece::BROOK || pieces[candidate_sq] == Piece::BQUEEN) {
+                    return true; // attacked by rook or queen in this direction
+                }
+            }
+        }
+    }
+    return false; // no attacks found 
+}
 
+bool Position::is_in_check(Square& king_sq, Colors king_color) {
+    return is_square_attacked(king_sq, get_opposite_color(king_color));
+}
