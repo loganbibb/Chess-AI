@@ -161,6 +161,95 @@ TEST_F(PositionTest, StartingPositionNotInCheck) {
     EXPECT_FALSE(pos.is_in_check(black_king, Colors::BLACK));
 }
 
+TEST_F(PositionTest, WhiteKingIsInCheckByBlackRook) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("e8")] = Piece::BROOK;
+    pos.set_pieces(pieces);
+
+    Square king_sq("e1");
+    EXPECT_TRUE(pos.is_in_check(king_sq, Colors::WHITE));
+}
+
+TEST_F(PositionTest, WhiteKingIsInCheckByBlackBishop) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("h4")] = Piece::BBISHOP;
+    pos.set_pieces(pieces);
+
+    Square king_sq("e1");
+    EXPECT_TRUE(pos.is_in_check(king_sq, Colors::WHITE));
+}
+
+TEST_F(PositionTest, BlackKingIsInCheckByWhiteKnight) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e8")] = Piece::BKING;
+    pieces[Square("f6")] = Piece::WKNIGHT;
+    pos.set_pieces(pieces);
+
+    Square king_sq("e8");
+    EXPECT_TRUE(pos.is_in_check(king_sq, Colors::BLACK));
+}
+
+TEST_F(PositionTest, AttackIsBlockedByOwnPiece) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("e5")] = Piece::WROOK;
+    pieces[Square("e8")] = Piece::BROOK;
+    pos.set_pieces(pieces);
+
+    Square king_sq("e1");
+    EXPECT_FALSE(pos.is_in_check(king_sq, Colors::WHITE));
+}
+
+TEST_F(PositionTest, IsSquareAttackedByWhitePawn) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("d4")] = Piece::WPAWN;
+    pos.set_pieces(pieces);
+
+    Square target("e5");
+    EXPECT_TRUE(pos.is_square_attacked(target, Colors::WHITE));
+}
+
+TEST_F(PositionTest, IsSquareAttackedByWhiteKnight) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("f7")] = Piece::WKNIGHT;
+    pos.set_pieces(pieces);
+
+    Square target("e5");
+    EXPECT_TRUE(pos.is_square_attacked(target, Colors::WHITE));
+}
+
+TEST_F(PositionTest, IsSquareAttackedByWhiteRook) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WROOK;
+    pos.set_pieces(pieces);
+
+    Square target("e5");
+    EXPECT_TRUE(pos.is_square_attacked(target, Colors::WHITE));
+}
+
 // ============================================================================
 // PAWN MOVE TESTS
 // ============================================================================

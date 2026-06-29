@@ -668,10 +668,10 @@ void Position::show() {
 bool Position::is_square_attacked(Square& sq, Colors attacker) {
     if (attacker == Colors::WHITE) {
         // check for white pawn attacks
-        if (sq.file() > 0 && sq.rank() < 7 && pieces(sq.file() - 1, sq.rank() + 1) == Piece::WPAWN) {
+        if (sq.file() > 0 && sq.rank() < 7 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::WPAWN) {
             return true;
         }
-        if (sq.file() < 7 && sq.rank() < 7 && pieces(sq.file() + 1, sq.rank() + 1) == Piece::WPAWN) {
+        if (sq.file() < 7 && sq.rank() < 7 && pieces(sq.file() + 1, sq.rank() - 1) == Piece::WPAWN) {
             return true;
         }
         for (const auto& offset : offsets::knight_move_offsets) {
@@ -721,10 +721,10 @@ bool Position::is_square_attacked(Square& sq, Colors attacker) {
     } 
     else if (attacker == Colors::BLACK) {
         // check for black pawn attacks
-        if (sq.file() > 0 && sq.rank() > 0 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::BPAWN) {
+        if (sq.file() > 0 && sq.rank() > 0 && pieces(sq.file() - 1, sq.rank() + 1) == Piece::BPAWN) {
             return true;
         }
-        if (sq.file() < 7 && sq.rank() > 0 && pieces(sq.file() + 1, sq.rank() - 1) == Piece::BPAWN) {
+        if (sq.file() < 7 && sq.rank() > 0 && pieces(sq.file() + 1, sq.rank() + 1) == Piece::BPAWN) {
             return true;
         }
         for (const auto& offset : offsets::knight_move_offsets) {
