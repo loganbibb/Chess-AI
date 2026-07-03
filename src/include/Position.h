@@ -54,11 +54,13 @@ public:
     inline uint8_t get_halfmove_num() {return halfmove_num;};
     inline uint16_t get_fullmove_num() {return fullmove_num;};
     std::vector<Move> generate_moves();
+    std::vector<Move> generate_legal_moves();
     void make_move(Move& move, Unmove& unmove);
     void unmake_move(Move& move, Unmove& unmove);
     void print_moves();
     void show();
-    bool is_square_attacked(Square& sq, Colors attacker);
-    bool is_in_check(Square& king_sq, Colors king_color);
+    bool is_square_attacked(Square sq, Colors attacker);
+    bool is_in_check(Square king_sq, Colors king_color);
+    Square find_king(Colors king_color);
     
 };

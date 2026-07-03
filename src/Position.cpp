@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 
@@ -433,6 +434,40 @@ std::vector<Move> Position::generate_moves() {
     return moves;
 }
 
+std::vector<Move> Position::generate_legal_moves() {
+    std::vector<Move> moves = generate_moves();
+    std::vector<Move> legal_moves;
+    for (auto& move : moves) {
+        Unmove unmove; 
+        Colors original_color = side_to_move;
+        make_move(move, unmove);
+        Square king_sq = find_king(original_color);
+        bool legal_move = true;
+        if (is_in_check(king_sq, original_color)) {
+            // moved into check, which is illegal. Remove this move from the list of legal moves.
+            legal_move = false; 
+        }
+        else if (move.is_castle) {
+            // check if the king passes through a square that is attacked. If so, this is illegal.
+            if (original_color == Colors::WHITE) {
+                if (is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK)) {
+                    legal_move = false; // illegal move, king passes through attacked square
+                }
+            }
+            else { // black to move
+                if (is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE)) {
+                    legal_move = false; // illegal move, king passes through attacked square
+                }
+            }
+        }
+        unmake_move(move, unmove);
+        if (legal_move) {
+            legal_moves.push_back(move);
+        }
+    }
+    return legal_moves;
+}
+
 void Position::make_move(Move& move, Unmove& unmove) {
     /**
      * Applies a move to the current position.
@@ -665,7 +700,7 @@ void Position::show() {
     std::cout << pieces.to_string() << std::endl;
 }
 
-bool Position::is_square_attacked(Square& sq, Colors attacker) {
+bool Position::is_square_attacked(Square sq, Colors attacker) {
     if (attacker == Colors::WHITE) {
         // check for white pawn attacks
         if (sq.file() > 0 && sq.rank() < 7 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::WPAWN) {
@@ -775,6 +810,15 @@ bool Position::is_square_attacked(Square& sq, Colors attacker) {
     return false; // no attacks found 
 }
 
-bool Position::is_in_check(Square& king_sq, Colors king_color) {
+bool Position::is_in_check(Square king_sq, Colors king_color) {
     return is_square_attacked(king_sq, get_opposite_color(king_color));
+}
+
+Square Position::find_king(Colors king_color) {
+    auto it = std::find(pieces.begin(), pieces.end(), (king_color == Colors::WHITE) ? Piece::WKING : Piece::BKING);
+    auto dist = std::distance(pieces.begin(), it);
+    if (dist < 0 || dist >= 64) {
+        throw Exceptions::InvalidPositionException("King not found on the board.");
+    }
+    return Square(static_cast<int>(dist));
 }

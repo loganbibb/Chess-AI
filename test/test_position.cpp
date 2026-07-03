@@ -670,6 +670,39 @@ TEST_F(PositionTest, CastlingQueensideAvailable) {
     EXPECT_TRUE(found_queenside_castle) << "Queenside castling should be available";
 }
 
+TEST_F(PositionTest, BlackCannotCastleThroughCheck) {
+    // Set up: Black king on e8, rook on h8, white rook on f1 attacking f8
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e8")] = Piece::BKING;
+    pieces[Square("h8")] = Piece::BROOK;
+    pieces[Square("f1")] = Piece::WROOK; // attacks f8
+    pos.set_pieces(pieces);
+
+    // Grant black kingside castling rights and make it black's turn
+    CastlingRights rights;
+    rights.white_kingside = false;
+    rights.white_queenside = false;
+    rights.black_kingside = true;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::BLACK);
+
+    std::vector<Move> moves = pos.generate_moves();
+
+    // Kingside castling for black would be a move to g8; it should NOT be present
+    bool found_kingside_castle_black = false;
+    for (const auto &move : moves) {
+        if (move.is_castle && move.to_square == Square("g8")) {
+            found_kingside_castle_black = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_kingside_castle_black) << "Black should not be allowed to castle through a square attacked by the opponent";
+}
+
 // ============================================================================
 // EN PASSANT TESTS
 // ============================================================================
@@ -743,4 +776,29 @@ TEST_F(PositionTest, MultiPiecesInteract) {
     
     // Should have generated some moves from the various pieces
     EXPECT_GT(moves.size(), 0) << "Should generate moves from multiple pieces";
+}
+
+TEST_F(PositionTest, PinnedPieceCannotMove) {
+    // Set up: White king on e1, white knight on e2 pinned by black rook on e8
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("e2")] = Piece::WKNIGHT;
+    pieces[Square("e8")] = Piece::BROOK;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+
+    std::vector<Move> moves = pos.generate_legal_moves();
+
+    // The knight on e2 is pinned along the e-file and should have no legal moves
+    bool found_move_from_e2 = false;
+    for (const auto &move : moves) {
+        if (move.from_square == Square("e2")) {
+            found_move_from_e2 = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_move_from_e2) << "Pinned piece on e2 should not have legal moves that expose the king to check";
 }
