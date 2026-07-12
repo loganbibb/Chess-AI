@@ -370,6 +370,28 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
 
 }
 
+double Position::eval_terminal_position() {
+    /*
+     * When this function is called, we assume we have already 
+     * determined there are no legal moves for the side to move.
+     * This function only returns the score based on whether 
+     * the position is checkmate (return +/-inf) or stalemate (return 0).
+    */
+   if (is_in_check(find_king(side_to_move), side_to_move)) {
+        // checkmate
+        if (side_to_move == Colors::WHITE) {
+            return -1E10;
+        }
+        else {
+            return 1E10;
+        }
+   }
+   else {
+       // stalemate
+       return 0;
+   }
+}
+
 std::vector<Move> Position::generate_moves() {
     std::vector<Move> moves;
 
