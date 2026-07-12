@@ -670,6 +670,122 @@ TEST_F(PositionTest, CastlingQueensideAvailable) {
     EXPECT_TRUE(found_queenside_castle) << "Queenside castling should be available";
 }
 
+TEST_F(PositionTest, WhiteKingsideCastlingDisabledWhenRightsFalse) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("h1")] = Piece::WROOK;
+    pos.set_pieces(pieces);
+
+    CastlingRights rights;
+    rights.white_kingside = false;
+    rights.white_queenside = false;
+    rights.black_kingside = false;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::WHITE);
+
+    std::vector<Move> moves = pos.generate_moves();
+
+    bool found_kingside_castle = false;
+    for (const auto& move : moves) {
+        if (move.is_castle && move.to_square == Square("g1")) {
+            found_kingside_castle = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_kingside_castle) << "White kingside castling should be illegal when the rights are disabled";
+}
+
+TEST_F(PositionTest, WhiteQueensideCastlingDisabledWhenRightsFalse) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e1")] = Piece::WKING;
+    pieces[Square("a1")] = Piece::WROOK;
+    pos.set_pieces(pieces);
+
+    CastlingRights rights;
+    rights.white_kingside = false;
+    rights.white_queenside = false;
+    rights.black_kingside = false;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::WHITE);
+
+    std::vector<Move> moves = pos.generate_moves();
+
+    bool found_queenside_castle = false;
+    for (const auto& move : moves) {
+        if (move.is_castle && move.to_square == Square("c1")) {
+            found_queenside_castle = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_queenside_castle) << "White queenside castling should be illegal when the rights are disabled";
+}
+
+TEST_F(PositionTest, BlackKingsideCastlingDisabledWhenRightsFalse) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e8")] = Piece::BKING;
+    pieces[Square("h8")] = Piece::BROOK;
+    pos.set_pieces(pieces);
+
+    CastlingRights rights;
+    rights.white_kingside = false;
+    rights.white_queenside = false;
+    rights.black_kingside = false;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::BLACK);
+
+    std::vector<Move> moves = pos.generate_moves();
+
+    bool found_kingside_castle = false;
+    for (const auto& move : moves) {
+        if (move.is_castle && move.to_square == Square("g8")) {
+            found_kingside_castle = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_kingside_castle) << "Black kingside castling should be illegal when the rights are disabled";
+}
+
+TEST_F(PositionTest, BlackQueensideCastlingDisabledWhenRightsFalse) {
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e8")] = Piece::BKING;
+    pieces[Square("a8")] = Piece::BROOK;
+    pos.set_pieces(pieces);
+
+    CastlingRights rights;
+    rights.white_kingside = false;
+    rights.white_queenside = false;
+    rights.black_kingside = false;
+    rights.black_queenside = false;
+    pos.set_castling_rights(rights);
+    pos.set_side_to_move(Colors::BLACK);
+
+    std::vector<Move> moves = pos.generate_moves();
+
+    bool found_queenside_castle = false;
+    for (const auto& move : moves) {
+        if (move.is_castle && move.to_square == Square("c8")) {
+            found_queenside_castle = true;
+            break;
+        }
+    }
+    EXPECT_FALSE(found_queenside_castle) << "Black queenside castling should be illegal when the rights are disabled";
+}
+
 TEST_F(PositionTest, BlackCannotCastleThroughCheck) {
     // Set up: Black king on e8, rook on h8, white rook on f1 attacking f8
     PieceVector pieces = pos.get_pieces();
