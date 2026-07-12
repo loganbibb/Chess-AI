@@ -48,9 +48,45 @@ void Position::setup_starting_position() {
 
 }
 
+double Position::get_piece_value(const Piece& piece) {
+    switch (piece) {
+        case Piece::NOPIECE:
+            return 0;
+        case Piece::WPAWN:
+            return 1;
+        case Piece::WKNIGHT:
+            return 3;
+        case Piece::WBISHOP:
+            return 3.25;
+        case Piece::WROOK:
+            return 5;
+        case Piece::WQUEEN:
+            return 9;
+        case Piece::WKING:
+            return 1000; 
+        case Piece::BPAWN:
+            return -1;
+        case Piece::BKNIGHT:
+            return -3;
+        case Piece::BBISHOP:
+            return -3.25;
+        case Piece::BROOK:
+            return -5;
+        case Piece::BQUEEN:
+            return -9;
+        case Piece::BKING:
+            return -1000;
+        default: 
+            throw Exceptions::InvalidPieceException();
+    }
+
+}
+
 float Position::get_eval() {
     eval = 0;
-    // TODO: implement evaluation function
+    for (int i = 0; i < 64; i++) 
+        eval += get_piece_value(pieces[i]);
+    // TODO: Implement piece maps
     return eval; 
 }
 

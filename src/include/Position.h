@@ -39,6 +39,7 @@ class Position {
     void generate_queen_moves(Square& sq, std::vector<Move>& moves);
     void generate_king_moves(Square& sq, std::vector<Move>& moves);
     double eval_terminal_position();
+    double get_piece_value(const Piece& piece);
 public:
     Position(bool setup_starting = true);
     float get_eval();
