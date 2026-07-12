@@ -448,15 +448,21 @@ std::vector<Move> Position::generate_legal_moves() {
             legal_move = false; 
         }
         else if (move.is_castle) {
-            // check if the king passes through a square that is attacked. If so, this is illegal.
+            // check if king passes through a square that is attacked (illegal)
             if (original_color == Colors::WHITE) {
-                if (is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK)) {
-                    legal_move = false; // illegal move, king passes through attacked square
+                if (move.to_square == "g1" && (!castling_rights.white_kingside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
+                    legal_move = false; 
+                }
+                else if (move.to_square == "c1" && (!castling_rights.white_queenside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
+                    legal_move = false; 
                 }
             }
             else { // black to move
-                if (is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE)) {
-                    legal_move = false; // illegal move, king passes through attacked square
+                if (move.to_square == "g8" && (!castling_rights.black_kingside || is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE))) {
+                    legal_move = false; 
+                }
+                else if (move.to_square == "c8" && (!castling_rights.black_queenside || is_square_attacked(Square("d8"), Colors::WHITE) || is_square_attacked(Square("c8"), Colors::WHITE))) {
+                    legal_move = false; 
                 }
             }
         }
