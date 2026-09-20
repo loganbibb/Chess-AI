@@ -2,6 +2,7 @@
 
 # Create a library with the chess engine implementation
 add_library(chess_engine
+    evaluation.cpp
     Square.cpp
     Piece.cpp
     Position.cpp
