@@ -19,7 +19,6 @@ Position::Position(bool setup_starting){
 void Position::setup_starting_position() {
     // add pieces to board in starting positions
     // board is ordered from a1 to h8, with a1 being index 0 and h8 being index 63.
-    pieces.resize(64, Piece::NOPIECE); // 8x8 board has 64 squares. Initialize all squares to NOPIECE first.
     // white pieces 
     pieces[0] = Piece::WROOK; 
     pieces[1] = Piece::WKNIGHT;
