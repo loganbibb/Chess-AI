@@ -1,6 +1,15 @@
+#pragma once
+
 #include <array> 
 
 namespace pst {
+    /* PST arrays are laid out from White's perspective, with index 0 = a8 
+     * (top-left when you draw a board with rank 8 on top), 
+     * incrementing left-to-right, rank 8 down to rank 1.
+     * 1. Our engine starts indexing at 0 for a1. 
+     * 2. We will use the same PST for both colors. 
+     * Combining the above two facts, we will need to flip the PST index row-wise ONLY for white. 
+     */
     namespace middlegame {
         inline constexpr std::array<int, 64> pawn = {{
             0,   0,   0,   0,   0,   0,  0,   0,
@@ -136,9 +145,20 @@ namespace pst {
         }};
     }
 }
+
 namespace eval {
+    inline constexpr std::array<int, 7> phase_values = {{
+        0, // NOPIECE
+        0, // WPAWN
+        1, // WKNIGHT
+        1, // WBISHOP
+        2, // WROOK
+        4, // WQUEEN
+        0, // WKING
+    }};
+    const float TOTAL_PHASE = 24.0; // sum of max material weighted by phase values above. 
     namespace middlegame {
-        constexpr std::array<int, 7> piece_values = {{
+        inline constexpr std::array<int, 7> piece_values = {{
             0, // NOPIECE
             82, // WPAWN
             337, // WKNIGHT
@@ -149,7 +169,7 @@ namespace eval {
         }};
     }
     namespace endgame {
-        constexpr std::array<int, 7> piece_values = {{
+        inline constexpr std::array<int, 7> piece_values = {{
             0, // NOPIECE
             94, // WPAWN
             281, // WKNIGHT

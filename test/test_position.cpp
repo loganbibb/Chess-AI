@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "../src/include/Position.h"
+#include "../src/include/evaluation.h"
 
 // Test fixture for Position tests
 class PositionTest : public ::testing::Test {
@@ -69,13 +70,6 @@ TEST_F(PositionTest, SetPieces) {
     PieceVector old_pieces = pos.get_pieces();
     pos.set_pieces(old_pieces);
     // Should be able to set pieces without error
-}
-
-// Evaluation tests
-TEST_F(PositionTest, GetEval) {
-    float eval = pos.get_eval();
-    // Starting position should have neutral or specific evaluation
-    // Depends on your evaluation function
 }
 
 // Display test (basic smoke test)
@@ -918,3 +912,74 @@ TEST_F(PositionTest, PinnedPieceCannotMove) {
     }
     EXPECT_FALSE(found_move_from_e2) << "Pinned piece on e2 should not have legal moves that expose the king to check";
 }
+
+// ============================================================================
+// POSITION EVALUATION TESTS
+// ============================================================================
+
+TEST_F(PositionTest, EvaluateStartingPosition) {
+    auto eval = pos.get_eval();
+    pos.show();
+    float expected_eval = 0.0f; // Assuming starting position is evaluated as neutral
+
+    EXPECT_NEAR(eval, expected_eval, 1E-1) << "Expected evaluation to be near " << expected_eval << " but got " << eval;
+}
+
+TEST_F(PositionTest, EvaluateEndgamePawnPieceSquareTables) {
+    PieceVector pieces;
+    pieces.fill(Piece::NOPIECE);
+    pieces[Square("b4")] = Piece::WPAWN;
+    pieces[Square("g5")] = Piece::BPAWN;
+    pos.set_pieces(pieces);
+
+    EXPECT_NEAR(pos.get_eval(), 6.0f, 1E-1);
+}
+
+TEST_F(PositionTest, EvaluateEndgameKingPieceSquareTables) {
+    PieceVector pieces;
+    pieces.fill(Piece::NOPIECE);
+    pieces[Square("c6")] = Piece::WKING;
+    pieces[Square("f3")] = Piece::BKING;
+    pos.set_pieces(pieces);
+
+    EXPECT_NEAR(pos.get_eval(), -22.0f, 1E-1);
+}
+
+TEST_F(PositionTest, EvaluateInterpolatedKnightAndBishopValues) {
+    PieceVector pieces;
+    pieces.fill(Piece::NOPIECE);
+    pieces[Square("d4")] = Piece::WKNIGHT;
+    pieces[Square("f5")] = Piece::BBISHOP;
+    pos.set_pieces(pieces);
+
+    EXPECT_NEAR(pos.get_eval(), -19.0f / 6.0f, 1E-1);
+}
+
+TEST_F(PositionTest, EvaluateMiddlegameQueenPieceSquareTables) {
+    PieceVector pieces;
+    pieces.fill(Piece::NOPIECE);
+    pieces[Square("b2")] = Piece::WQUEEN;
+    pieces[Square("e4")] = Piece::WQUEEN;
+    pieces[Square("g6")] = Piece::WQUEEN;
+    pieces[Square("c7")] = Piece::BQUEEN;
+    pieces[Square("f5")] = Piece::BQUEEN;
+    pieces[Square("h3")] = Piece::BQUEEN;
+    pos.set_pieces(pieces);
+
+    EXPECT_NEAR(pos.get_eval(), -27.0f, 1E-1);
+}
+
+TEST_F(PositionTest, EvaluateMixedPositionSumsMaterialAndPieceSquareValues) {
+    PieceVector pieces;
+    pieces.fill(Piece::NOPIECE);
+    pieces[Square("b4")] = Piece::WPAWN;
+    pieces[Square("g5")] = Piece::BPAWN;
+    pieces[Square("d4")] = Piece::WKNIGHT;
+    pieces[Square("f5")] = Piece::BBISHOP;
+    pieces[Square("c6")] = Piece::WKING;
+    pieces[Square("f3")] = Piece::BKING;
+    pos.set_pieces(pieces);
+
+    EXPECT_NEAR(pos.get_eval(), -115.0f / 6.0f, 1E-1);
+}
+

@@ -1,12 +1,14 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 
 #include "include/Move.h"
 #include "include/Piece.h"
 #include "include/Position.h"
 #include "include/Unmove.h"
 #include "include/move_offsets.h"
+#include "include/evaluation.h"
 
 Position::Position(bool setup_starting){
     /* Creates a board with pieces at the starting positions. */
@@ -47,44 +49,76 @@ void Position::setup_starting_position() {
 
 }
 
-double Position::get_piece_value(const Piece& piece) {
-    switch (piece) {
-        case Piece::NOPIECE:
-            return 0;
-        case Piece::WPAWN:
-            return 1;
-        case Piece::WKNIGHT:
-            return 3;
-        case Piece::WBISHOP:
-            return 3.25;
-        case Piece::WROOK:
-            return 5;
-        case Piece::WQUEEN:
-            return 9;
-        case Piece::WKING:
-            return 1000; 
-        case Piece::BPAWN:
-            return -1;
-        case Piece::BKNIGHT:
-            return -3;
-        case Piece::BBISHOP:
-            return -3.25;
-        case Piece::BROOK:
-            return -5;
-        case Piece::BQUEEN:
-            return -9;
-        case Piece::BKING:
-            return -1000;
-        default: 
-            throw Exceptions::InvalidPieceException();
+float Position::get_phase() const {
+    // returns a value between 0 and 1 representing the phase of the game, where 0 is the opening and 1 is the endgame.
+    // phase is calculated based on the number of pieces on the board, with more pieces indicating an earlier phase of the game.
+    int phase = 0;
+    for (const auto& piece : pieces) {
+        int idx = std::abs(static_cast<int>(piece));
+        if (piece != Piece::NOPIECE) {
+            phase += ::eval::phase_values[idx];
+        }
     }
+    return 1 - static_cast<float>(phase) / ::eval::TOTAL_PHASE;
+}
 
+float Position::get_piece_value(Square sq, float phase) {
+    Piece piece = pieces[sq];
+    int index = std::abs(static_cast<int>(piece));  // 0-6; will index into eval's piece_values array.
+    float sign = (static_cast<int>(piece) > 0) ? 1 : -1; // sign is negative for black pieces
+    if (index < 0 && index > 7) {
+        throw Exceptions::InvalidPieceException();
+    }
+    float mg_val = static_cast<float>(::eval::middlegame::piece_values[index]);
+    float eg_val = static_cast<float>(::eval::endgame::piece_values[index]);
+    // flip square's rank for white pieces, since PSTs are defined from black's perspective
+    if (get_piece_color(piece) == Colors::WHITE) {
+        sq.flip_rank(); 
+    }
+    // apply PST bias
+    switch (piece) {
+        case Piece::WPAWN:
+        case Piece::BPAWN:
+            mg_val += ::pst::middlegame::pawn[sq];
+            eg_val += ::pst::endgame::pawn[sq];
+            break;
+        case Piece::WKNIGHT:
+        case Piece::BKNIGHT:
+            mg_val += ::pst::middlegame::knight[sq];
+            eg_val += ::pst::endgame::knight[sq];
+            break;
+        case Piece::WBISHOP:
+        case Piece::BBISHOP:
+            mg_val += ::pst::middlegame::bishop[sq];
+            eg_val += ::pst::endgame::bishop[sq];
+            break;
+        case Piece::WROOK:
+        case Piece::BROOK:
+            mg_val += ::pst::middlegame::rook[sq];
+            eg_val += ::pst::endgame::rook[sq];
+            break;
+        case Piece::WQUEEN:
+        case Piece::BQUEEN:
+            mg_val += ::pst::middlegame::queen[sq];
+            eg_val += ::pst::endgame::queen[sq];
+            break;
+        case Piece::WKING:
+        case Piece::BKING:
+            mg_val += ::pst::middlegame::king[sq];
+            eg_val += ::pst::endgame::king[sq];
+            break;
+        default:
+            break;
+    }
+    return sign * ((1-phase) * mg_val + phase * eg_val);
 }
 
 float Position::get_eval() {
+    float phase = get_phase();
     eval = 0;
     for (int i = 0; i < 64; i++) 
-        eval += get_piece_value(pieces[i]);
+        if (pieces[i] != Piece::NOPIECE)
+            eval += get_piece_value(i, phase);
     // TODO: Implement piece maps
     return eval; 
 }

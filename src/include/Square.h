@@ -34,6 +34,7 @@ class Square{
     void dec_file() {this->apply_offset(-1, 0, true);}
     void inc_rank() {this->apply_offset(0, 1, true);}
     void dec_rank() {this->apply_offset(0, -1, true);}
+    void flip_rank() {this->set_square(this->file(), 7 - this->rank());} // flips rank of square, e.g. a1 -> a8
     Square apply_offset(const int file_offset, const int rank_offset, bool inplace = false);
     inline bool in_bounds() const {return (index >= 0 && index <= 63);}
     std::string to_string() const;
