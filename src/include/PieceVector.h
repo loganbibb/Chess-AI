@@ -19,12 +19,22 @@ class PieceVector : public std::array<Piece, 64> {
     PieceVector() : std::array<Piece, 64>() {
         this->fill(Piece::NOPIECE); // initialize all squares to NOPIECE
     } 
-    std::string to_string();
+    std::string to_string() const;
     Piece& operator()(int8_t file, int8_t rank);
+    const Piece& operator()(int8_t file, int8_t rank) const;
     Piece& operator()(const Square& square);
+    const Piece& operator()(const Square& square) const;
     Piece& operator[](std::string sq_str);
+    const Piece& operator[](const std::string& sq_str) const;
     Piece& operator[](const Square& square);
+    const Piece& operator[](const Square& square) const;
     Piece& operator[](int index) {
+        if (index < 0 || index >= 64) {
+            throw Exceptions::IndexError();
+        }
+        return std::array<Piece,64>::operator[](index);
+    }
+    const Piece& operator[](int index) const {
         if (index < 0 || index >= 64) {
             throw Exceptions::IndexError();
         }

@@ -12,7 +12,6 @@
 
 Position::Position(bool setup_starting){
     /* Creates a board with pieces at the starting positions. */
-    eval = 0;
     if (setup_starting) {
         setup_starting_position();
     }
@@ -62,7 +61,7 @@ float Position::get_phase() const {
     return 1 - static_cast<float>(phase) / ::eval::TOTAL_PHASE;
 }
 
-float Position::get_piece_value(Square sq, float phase) {
+float Position::get_piece_value(Square sq, float phase) const {
     Piece piece = pieces[sq];
     int index = std::abs(static_cast<int>(piece));  // 0-6; will index into eval's piece_values array.
     float sign = (static_cast<int>(piece) > 0) ? 1 : -1; // sign is negative for black pieces
@@ -71,7 +70,7 @@ float Position::get_piece_value(Square sq, float phase) {
     }
     float mg_val = static_cast<float>(::eval::middlegame::piece_values[index]);
     float eg_val = static_cast<float>(::eval::endgame::piece_values[index]);
-    // flip square's rank for white pieces, since PSTs are defined from black's perspective
+    // flip square's rank for white pieces, since PSTs are indexed from black's perspective
     if (get_piece_color(piece) == Colors::WHITE) {
         sq.flip_rank(); 
     }
@@ -113,9 +112,12 @@ float Position::get_piece_value(Square sq, float phase) {
     return sign * ((1-phase) * mg_val + phase * eg_val);
 }
 
-float Position::get_eval() {
+float Position::get_eval() const {
+    /* Calculates the evaluation of the position based on the pieces on the board and their positions.
+     * Positive evaluation indicates an advantage for white, while negative evaluation indicates an advantage for black.
+    */
     float phase = get_phase();
-    eval = 0;
+    float eval = 0;
     for (int i = 0; i < 64; i++) 
         if (pieces[i] != Piece::NOPIECE)
             eval += get_piece_value(i, phase);
@@ -128,7 +130,7 @@ void Position::set_pieces(PieceVector new_pieces) {
     pieces = new_pieces;
 }
 
-void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
+void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) const {
     /*
      * Handle pawn move generation. 
      * Generates a series of moves for a pawn at the given square, including normal moves, captures, en passant, and promotions.
@@ -276,7 +278,7 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) {
     moves.insert(moves.end(), pawn_moves.begin(), pawn_moves.end());
 }
 
-void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) {
+void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) const {
     Square candidate_sq = sq; 
     Colors own_color = get_piece_color(pieces[sq]);
     for (const auto& offset : offsets::knight_move_offsets) {
@@ -293,7 +295,7 @@ void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) {
     }
 }
 
-void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) {
+void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) const {
     Square candidate_sq = sq;
     Colors own_color = get_piece_color(pieces[sq]);
 
@@ -327,7 +329,7 @@ void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) {
     }
 }
 
-void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) {
+void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) const {
     Square candidate_sq = sq;
     Colors own_color = get_piece_color(pieces[sq]);
 
@@ -358,13 +360,13 @@ void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) {
     }
 }
 
-void Position::generate_queen_moves(Square& sq, std::vector<Move>& moves) {
+void Position::generate_queen_moves(Square& sq, std::vector<Move>& moves) const {
     // queen moves are just sum of rook and bishop moves
     generate_bishop_moves(sq, moves);
     generate_rook_moves(sq, moves);
 }
 
-void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
+void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
     
 
     Square candidate_sq = sq; 
@@ -439,7 +441,7 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) {
 
 }
 
-double Position::eval_terminal_position() {
+double Position::eval_terminal_position() const {
     /*
      * When this function is called, we assume we have already 
      * determined there are no legal moves for the side to move.
@@ -461,10 +463,8 @@ double Position::eval_terminal_position() {
    }
 }
 
-std::vector<Move> Position::generate_moves() {
+std::vector<Move> Position::generate_moves() const {
     std::vector<Move> moves;
-
-    // TODO: implement move generation for all pieces. For now, only implement pawn move generation as a proof of concept.
     if (side_to_move == Colors::WHITE) {
         for (int i = 0; i < 64; i++) {
             if (pieces[i] == Piece::WPAWN) {
@@ -565,7 +565,7 @@ std::vector<Move> Position::generate_legal_moves() {
     return legal_moves;
 }
 
-void Position::make_move(Move& move, Unmove& unmove) {
+void Position::make_move(const Move& move, Unmove& unmove) {
     /**
      * Applies a move to the current position.
      * Special handling for castling, promotion, and en passant
@@ -666,7 +666,7 @@ void Position::make_move(Move& move, Unmove& unmove) {
 
 }
 
-void Position::unmake_move(Move& move, Unmove& unmove){
+void Position::unmake_move(const Move& move, const Unmove& unmove){
     // return side_to_move
     side_to_move = (side_to_move == Colors::WHITE)? Colors::BLACK : Colors::WHITE; 
     // Reset Position from unmove 
@@ -720,7 +720,7 @@ void Position::unmake_move(Move& move, Unmove& unmove){
     }
 }
 
-void Position::print_moves() {
+void Position::print_moves() const {
     std::vector<Move> moves = generate_moves();
 
     for (const Move& move : moves) {
@@ -791,13 +791,13 @@ void Position::print_moves() {
     }
 }
 
-void Position::show() {
+void Position::show() const {
     // Print out 8x8 board with pieces represented by their enum values.
     // Primarily for debugging. 
     std::cout << pieces.to_string() << std::endl;
 }
 
-bool Position::is_square_attacked(Square sq, Colors attacker) {
+bool Position::is_square_attacked(Square sq, Colors attacker) const {
     if (attacker == Colors::WHITE) {
         // check for white pawn attacks
         if (sq.file() > 0 && sq.rank() < 7 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::WPAWN) {
@@ -907,11 +907,11 @@ bool Position::is_square_attacked(Square sq, Colors attacker) {
     return false; // no attacks found 
 }
 
-bool Position::is_in_check(Square king_sq, Colors king_color) {
+bool Position::is_in_check(Square king_sq, Colors king_color) const {
     return is_square_attacked(king_sq, get_opposite_color(king_color));
 }
 
-Square Position::find_king(Colors king_color) {
+Square Position::find_king(Colors king_color) const {
     auto it = std::find(pieces.begin(), pieces.end(), (king_color == Colors::WHITE) ? Piece::WKING : Piece::BKING);
     auto dist = std::distance(pieces.begin(), it);
     if (dist < 0 || dist >= 64) {

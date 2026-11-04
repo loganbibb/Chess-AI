@@ -6,6 +6,7 @@ add_library(chess_engine
     Piece.cpp
     Position.cpp
     PieceVector.cpp
+    SearchEngine.cpp
 )
 
 # Set public include directories for the library
