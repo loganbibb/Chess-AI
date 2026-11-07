@@ -5,16 +5,16 @@
 // Test fixture for Position tests
 class PositionTest : public ::testing::Test {
 protected:
-    Position pos;
-    
-    void SetUp() override {
-        // Position constructor should set up starting position
-        // Add setup logic if needed
+    Position pos{false}; // Initialize Position without setting up starting position
+
+    void set_up_starting_position() {
+        pos = Position(true);
     }
 };
 
 // Move generation tests
-TEST_F(PositionTest, GenerateMoves) {
+TEST_F(PositionTest, GenerateStartingMoves) {
+    set_up_starting_position();
     std::vector<Move> moves = pos.generate_moves();
     
     // In starting position, white has 20 legal moves (16 pawn moves + 4 knight moves)
@@ -22,6 +22,7 @@ TEST_F(PositionTest, GenerateMoves) {
 }
 
 TEST_F(PositionTest, GenerateMovesNotEmpty) {
+    set_up_starting_position();
     std::vector<Move> moves = pos.generate_moves();
     pos.show(); 
     EXPECT_FALSE(moves.empty());
@@ -31,6 +32,7 @@ TEST_F(PositionTest, GenerateMovesNotEmpty) {
 TEST_F(PositionTest, GeneratePawnMovesStartingPosition) {
     // In starting position, each of 8 pawns can move 1 or 2 squares
     // That's 16 pawn moves total
+    set_up_starting_position();
     std::vector<Move> moves = pos.generate_moves();
     
     int pawn_moves = 0;
@@ -47,6 +49,7 @@ TEST_F(PositionTest, GeneratePawnMovesStartingPosition) {
 TEST_F(PositionTest, GenerateKnightMovesStartingPosition) {
     // In starting position, there are 2 knights that can each move to 2 squares
     // That's 4 knight moves total
+    set_up_starting_position();
     std::vector<Move> moves = pos.generate_moves();
     
     int knight_moves = 0;
@@ -79,10 +82,12 @@ TEST_F(PositionTest, ShowPosition) {
 }
 
 TEST_F(PositionTest, PrintMovesEmitsReadableNotation) {
+    set_up_starting_position();
     std::string output;
+    std::vector<Move> moves = pos.generate_legal_moves();
     {
         testing::internal::CaptureStdout();
-        pos.print_moves();
+        pos.print_moves(moves);
         output = testing::internal::GetCapturedStdout();
     }
 
@@ -92,6 +97,7 @@ TEST_F(PositionTest, PrintMovesEmitsReadableNotation) {
 
 // Move making and unmaking tests
 TEST_F(PositionTest, MakeAndUnmakeMove) {
+    set_up_starting_position();
     std::vector<Move> moves = pos.generate_moves();
     
     if (!moves.empty()) {
@@ -107,6 +113,7 @@ TEST_F(PositionTest, MakeAndUnmakeMove) {
 }
 
 TEST_F(PositionTest, MakeMoveChangesPosition) {
+    set_up_starting_position();
     std::vector<Move> moves = pos.generate_moves();
     
     if (!moves.empty()) {
@@ -126,6 +133,7 @@ TEST_F(PositionTest, MakeMoveChangesPosition) {
 
 // Multiple moves test
 TEST_F(PositionTest, MakeMultipleMoves) {
+    set_up_starting_position();
     std::vector<Move> moves1 = pos.generate_moves();
     
     if (!moves1.empty()) {
@@ -148,6 +156,7 @@ TEST_F(PositionTest, MakeMultipleMoves) {
 
 // Check detection tests
 TEST_F(PositionTest, StartingPositionNotInCheck) {
+    set_up_starting_position();
     Square white_king("e1");
     Square black_king("e8");
 
@@ -157,9 +166,6 @@ TEST_F(PositionTest, StartingPositionNotInCheck) {
 
 TEST_F(PositionTest, WhiteKingIsInCheckByBlackRook) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("e8")] = Piece::BROOK;
     pos.set_pieces(pieces);
@@ -170,9 +176,6 @@ TEST_F(PositionTest, WhiteKingIsInCheckByBlackRook) {
 
 TEST_F(PositionTest, WhiteKingIsInCheckByBlackBishop) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("h4")] = Piece::BBISHOP;
     pos.set_pieces(pieces);
@@ -183,9 +186,6 @@ TEST_F(PositionTest, WhiteKingIsInCheckByBlackBishop) {
 
 TEST_F(PositionTest, BlackKingIsInCheckByWhiteKnight) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e8")] = Piece::BKING;
     pieces[Square("f6")] = Piece::WKNIGHT;
     pos.set_pieces(pieces);
@@ -196,9 +196,6 @@ TEST_F(PositionTest, BlackKingIsInCheckByWhiteKnight) {
 
 TEST_F(PositionTest, AttackIsBlockedByOwnPiece) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("e5")] = Piece::WROOK;
     pieces[Square("e8")] = Piece::BROOK;
@@ -210,9 +207,6 @@ TEST_F(PositionTest, AttackIsBlockedByOwnPiece) {
 
 TEST_F(PositionTest, IsSquareAttackedByWhitePawn) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("d4")] = Piece::WPAWN;
     pos.set_pieces(pieces);
 
@@ -222,9 +216,6 @@ TEST_F(PositionTest, IsSquareAttackedByWhitePawn) {
 
 TEST_F(PositionTest, IsSquareAttackedByWhiteKnight) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("f7")] = Piece::WKNIGHT;
     pos.set_pieces(pieces);
 
@@ -234,9 +225,6 @@ TEST_F(PositionTest, IsSquareAttackedByWhiteKnight) {
 
 TEST_F(PositionTest, IsSquareAttackedByWhiteRook) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WROOK;
     pos.set_pieces(pieces);
 
@@ -249,6 +237,7 @@ TEST_F(PositionTest, IsSquareAttackedByWhiteRook) {
 // ============================================================================
 
 TEST_F(PositionTest, PawnSinglePushFromStarting) {
+    set_up_starting_position();
     // White pawn at a2 should be able to move to a3
     std::vector<Move> moves = pos.generate_moves();
     
@@ -263,6 +252,7 @@ TEST_F(PositionTest, PawnSinglePushFromStarting) {
 }
 
 TEST_F(PositionTest, PawnDoublePushFromStarting) {
+    set_up_starting_position();
     // White pawn at e2 should be able to move to e4
     std::vector<Move> moves = pos.generate_moves();
     
@@ -281,7 +271,6 @@ TEST_F(PositionTest, PawnCaptureMove) {
     PieceVector pieces = pos.get_pieces();
     pieces[Square("e4")] = Piece::WPAWN;
     pieces[Square("d5")] = Piece::BPAWN;
-    pieces[Square("e2")] = Piece::NOPIECE;  // Remove original pawn
     pos.set_pieces(pieces);
     
     std::vector<Move> moves = pos.generate_moves();
@@ -297,6 +286,7 @@ TEST_F(PositionTest, PawnCaptureMove) {
 }
 
 TEST_F(PositionTest, BlackPawnMovement) {
+    set_up_starting_position();
     // Move white pawn and then check black pawn moves
     std::vector<Move> white_moves = pos.generate_moves();
     Move white_move = white_moves[0];  // Move any white piece
@@ -318,9 +308,6 @@ TEST_F(PositionTest, BlackPawnMovement) {
 
 TEST_F(PositionTest, PawnPromotionFlag) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e7")] = Piece::WPAWN;
     pieces[Square("e8")] = Piece::NOPIECE;
     pos.set_pieces(pieces);
@@ -343,6 +330,7 @@ TEST_F(PositionTest, PawnPromotionFlag) {
 // ============================================================================
 
 TEST_F(PositionTest, KnightMovesFromStarting) {
+    set_up_starting_position();
     // White knight at b1 should have 2 available moves (a3, c3)
     std::vector<Move> moves = pos.generate_moves();
     
@@ -358,10 +346,6 @@ TEST_F(PositionTest, KnightMovesFromStarting) {
 TEST_F(PositionTest, KnightMovesFromCentralSquare) {
     // Set up: Isolated white knight at d4
     PieceVector pieces = pos.get_pieces();
-    // Clear the board except for the knight
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("d4")] = Piece::WKNIGHT;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
@@ -375,9 +359,6 @@ TEST_F(PositionTest, KnightMovesFromCentralSquare) {
 TEST_F(PositionTest, KnightCaptureMove) {
     // Set up: White knight at e4, black piece at f6
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WKNIGHT;
     pieces[Square("f6")] = Piece::BPAWN;
     pos.set_pieces(pieces);
@@ -398,9 +379,6 @@ TEST_F(PositionTest, KnightCaptureMove) {
 TEST_F(PositionTest, KnightBlockedByOwnPiece) {
     // Set up: White knight at e4, white pawn at f6
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WKNIGHT;
     pieces[Square("f6")] = Piece::WPAWN;  // Own piece blocks
     pos.set_pieces(pieces);
@@ -425,9 +403,6 @@ TEST_F(PositionTest, KnightBlockedByOwnPiece) {
 TEST_F(PositionTest, BishopMovesFromOpenPosition) {
     // Set up: White bishop at e4 on empty board
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WBISHOP;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
@@ -441,9 +416,6 @@ TEST_F(PositionTest, BishopMovesFromOpenPosition) {
 TEST_F(PositionTest, BishopBlockedByPiece) {
     // Set up: White bishop at a1, white pawn at c3 blocks one diagonal
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("a1")] = Piece::WBISHOP;
     pieces[Square("c3")] = Piece::WPAWN;
     pos.set_pieces(pieces);
@@ -465,9 +437,6 @@ TEST_F(PositionTest, BishopBlockedByPiece) {
 TEST_F(PositionTest, BishopCaptureBlackPiece) {
     // Set up: White bishop at a1, black piece at c3
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("a1")] = Piece::WBISHOP;
     pieces[Square("c3")] = Piece::BPAWN;
     pos.set_pieces(pieces);
@@ -492,9 +461,6 @@ TEST_F(PositionTest, BishopCaptureBlackPiece) {
 TEST_F(PositionTest, RookMovesFromOpenPosition) {
     // Set up: White rook at e4 on empty board
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WROOK;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
@@ -508,9 +474,6 @@ TEST_F(PositionTest, RookMovesFromOpenPosition) {
 TEST_F(PositionTest, RookBlockedByPiece) {
     // Set up: White rook at a1, white pawn at a3 blocks vertical movement
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("a1")] = Piece::WROOK;
     pieces[Square("a3")] = Piece::WPAWN;
     pos.set_pieces(pieces);
@@ -535,9 +498,6 @@ TEST_F(PositionTest, RookBlockedByPiece) {
 TEST_F(PositionTest, QueenMovesFromOpenPosition) {
     // Set up: White queen at e4 on empty board
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WQUEEN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
@@ -555,9 +515,6 @@ TEST_F(PositionTest, QueenMovesFromOpenPosition) {
 TEST_F(PositionTest, KingMovesFromCentralPosition) {
     // Set up: White king at e4 on empty board
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WKING;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
@@ -571,9 +528,6 @@ TEST_F(PositionTest, KingMovesFromCentralPosition) {
 TEST_F(PositionTest, KingMovesFromCorner) {
     // Set up: White king at a1 on empty board
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("a1")] = Piece::WKING;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
@@ -589,6 +543,7 @@ TEST_F(PositionTest, KingMovesFromCorner) {
 // ============================================================================
 
 TEST_F(PositionTest, CastlingKingsideNotAvailableWithPieces) {
+    set_up_starting_position();
     // Starting position - castling should not be available (pieces in the way)
     std::vector<Move> moves = pos.generate_moves();
     
@@ -605,9 +560,6 @@ TEST_F(PositionTest, CastlingKingsideNotAvailableWithPieces) {
 TEST_F(PositionTest, CastlingKingsideAvailable) {
     // Set up: White king at e1, white rook at h1, f1 and g1 empty
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("h1")] = Piece::WROOK;
     pos.set_pieces(pieces);
@@ -636,9 +588,6 @@ TEST_F(PositionTest, CastlingKingsideAvailable) {
 TEST_F(PositionTest, CastlingQueensideAvailable) {
     // Set up: White king at e1, white rook at a1, b1-d1 empty
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("a1")] = Piece::WROOK;
     pos.set_pieces(pieces);
@@ -666,9 +615,6 @@ TEST_F(PositionTest, CastlingQueensideAvailable) {
 
 TEST_F(PositionTest, WhiteKingsideCastlingDisabledWhenRightsFalse) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("h1")] = Piece::WROOK;
     pos.set_pieces(pieces);
@@ -695,9 +641,6 @@ TEST_F(PositionTest, WhiteKingsideCastlingDisabledWhenRightsFalse) {
 
 TEST_F(PositionTest, WhiteQueensideCastlingDisabledWhenRightsFalse) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("a1")] = Piece::WROOK;
     pos.set_pieces(pieces);
@@ -724,9 +667,6 @@ TEST_F(PositionTest, WhiteQueensideCastlingDisabledWhenRightsFalse) {
 
 TEST_F(PositionTest, BlackKingsideCastlingDisabledWhenRightsFalse) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e8")] = Piece::BKING;
     pieces[Square("h8")] = Piece::BROOK;
     pos.set_pieces(pieces);
@@ -753,9 +693,6 @@ TEST_F(PositionTest, BlackKingsideCastlingDisabledWhenRightsFalse) {
 
 TEST_F(PositionTest, BlackQueensideCastlingDisabledWhenRightsFalse) {
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e8")] = Piece::BKING;
     pieces[Square("a8")] = Piece::BROOK;
     pos.set_pieces(pieces);
@@ -783,9 +720,6 @@ TEST_F(PositionTest, BlackQueensideCastlingDisabledWhenRightsFalse) {
 TEST_F(PositionTest, BlackCannotCastleThroughCheck) {
     // Set up: Black king on e8, rook on h8, white rook on f1 attacking f8
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e8")] = Piece::BKING;
     pieces[Square("h8")] = Piece::BROOK;
     pieces[Square("f1")] = Piece::WROOK; // attacks f8
@@ -820,9 +754,6 @@ TEST_F(PositionTest, BlackCannotCastleThroughCheck) {
 TEST_F(PositionTest, EnPassantCaptureAvailable) {
     // Set up: White pawn at e4, black pawn at d4, en passant square at d3
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e4")] = Piece::WPAWN;
     pieces[Square("d4")] = Piece::BPAWN;
     pos.set_pieces(pieces);
@@ -846,6 +777,7 @@ TEST_F(PositionTest, EnPassantCaptureAvailable) {
 // ============================================================================
 
 TEST_F(PositionTest, SideToMoveAffectsGeneratedMoves) {
+    set_up_starting_position();
     // Generate moves for white
     pos.set_side_to_move(Colors::WHITE);
     std::vector<Move> white_moves = pos.generate_moves();
@@ -870,9 +802,6 @@ TEST_F(PositionTest, SideToMoveAffectsGeneratedMoves) {
 TEST_F(PositionTest, MultiPiecesInteract) {
     // Set up: Complex position with multiple pieces that interact
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e2")] = Piece::WPAWN;
     pieces[Square("e4")] = Piece::WPAWN;
     pieces[Square("d3")] = Piece::WBISHOP;
@@ -891,9 +820,6 @@ TEST_F(PositionTest, MultiPiecesInteract) {
 TEST_F(PositionTest, PinnedPieceCannotMove) {
     // Set up: White king on e1, white knight on e2 pinned by black rook on e8
     PieceVector pieces = pos.get_pieces();
-    for (int i = 0; i < 64; i++) {
-        pieces[i] = Piece::NOPIECE;
-    }
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("e2")] = Piece::WKNIGHT;
     pieces[Square("e8")] = Piece::BROOK;
@@ -918,6 +844,7 @@ TEST_F(PositionTest, PinnedPieceCannotMove) {
 // ============================================================================
 
 TEST_F(PositionTest, EvaluateStartingPosition) {
+    set_up_starting_position();
     auto eval = pos.get_eval();
     pos.show();
     float expected_eval = 0.0f; // Assuming starting position is evaluated as neutral

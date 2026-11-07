@@ -112,16 +112,24 @@ float Position::get_piece_value(Square sq, float phase) const {
     return sign * ((1-phase) * mg_val + phase * eg_val);
 }
 
-float Position::get_eval() const {
+float Position::get_eval() {
     /* Calculates the evaluation of the position based on the pieces on the board and their positions.
-     * Positive evaluation indicates an advantage for white, while negative evaluation indicates an advantage for black.
+     * Positive evaluation indicates an advantage for white, while negative evaluation indicates an 
+     * advantage for black.
+     * Note this function does NOT provide a terminal evaluation, so it will return a standard PST-based
+     * evaluation for checkmate or stalemate positions. Terminal evaluation should be called in the 
+     * search engine.
+     * The evaluation is calculated using piece values and piece-square tables (PSTs) for
+     * each piece type, with the evaluation being a weighted sum of the middlegame and endgame 
+     * evaluations based on the phase of the game.
     */
+
+    // normal position evaluation
     float phase = get_phase();
     float eval = 0;
     for (int i = 0; i < 64; i++) 
         if (pieces[i] != Piece::NOPIECE)
             eval += get_piece_value(i, phase);
-    // TODO: Implement piece maps
     return eval; 
 }
 
@@ -198,9 +206,8 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) const {
                     new_move.to_square = en_passant_square;
                     new_move.is_en_passant = true;
                     pawn_moves.push_back(new_move);
-                }
+            }
         }
-
     }
     else if (get_piece_color(pieces[sq]) == Colors::BLACK) { 
         // nominal pawn move 
@@ -258,7 +265,7 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) const {
                     new_move.to_square = en_passant_square;
                     new_move.is_en_passant = true;
                     pawn_moves.push_back(new_move);
-                }
+            }
         }
     }
 
@@ -463,7 +470,7 @@ double Position::eval_terminal_position() const {
    }
 }
 
-std::vector<Move> Position::generate_moves() const {
+std::vector<Move> Position::generate_moves() {
     std::vector<Move> moves;
     if (side_to_move == Colors::WHITE) {
         for (int i = 0; i < 64; i++) {
@@ -520,6 +527,19 @@ std::vector<Move> Position::generate_moves() const {
                 generate_king_moves(sq, moves);
             }
         }
+    }
+
+    // lastly, assign is_check to true for moves that result in a check. 
+    for (auto& move : moves) {
+        Unmove unmove; 
+        make_move(move, unmove);
+        // after make_move, side_to_move has changed, so find the king of the opposite color
+        Square king_sq = find_king(side_to_move); 
+        if (is_in_check(king_sq, side_to_move)) {
+            // the move results in a check, so set is_check to true
+            move.is_check = true;
+        }
+        unmake_move(move, unmove);
     }
 
     return moves;
@@ -720,9 +740,7 @@ void Position::unmake_move(const Move& move, const Unmove& unmove){
     }
 }
 
-void Position::print_moves() const {
-    std::vector<Move> moves = generate_moves();
-
+void Position::print_moves(std::vector<Move> moves) const {
     for (const Move& move : moves) {
         std::string notation;
 

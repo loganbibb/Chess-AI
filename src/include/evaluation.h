@@ -147,6 +147,8 @@ namespace pst {
 }
 
 namespace eval {
+    inline constexpr float CHECKMATE = 1E10; 
+    inline constexpr float STALEMATE = 0; 
     inline constexpr std::array<int, 7> phase_values = {{
         0, // NOPIECE
         0, // WPAWN

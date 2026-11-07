@@ -7,6 +7,7 @@ add_executable(
     test_piece.cpp
     test_move.cpp
     test_position.cpp
+    test_SearchEngine.cpp
 )
 
 # Link against GoogleTest and chess engine library

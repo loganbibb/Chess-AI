@@ -1,9 +1,14 @@
 #include <cmath>
 #include <limits>
 
+#include "error_types.h"
+#include "evaluation.h"
 #include "SearchEngine.h"
 
-Move SearchEngine::search(int depth, Player player) {
+Move SearchEngine::search(int depth, Colors player) {
+    if (player == Colors::NOCOLOR) {
+        throw Exceptions::InvalidColorException("Invalid player color. Player must be either WHITE or BLACK.");
+    }
     float alpha = -std::numeric_limits<float>::infinity();
     float beta = std::numeric_limits<float>::infinity();
     Move best_move;
@@ -18,15 +23,15 @@ Move SearchEngine::search(int depth, Player player) {
     }
     for (const auto& move : moves) {
         position.make_move(move, unmove);
-        if (player == WHITE) {
-            float eval = minimax(depth - 1, BLACK, alpha, beta);
+        if (player == Colors::WHITE) {
+            float eval = minimax(depth - 1, Colors::BLACK, alpha, beta);
             position.unmake_move(move, unmove);
             if (eval > alpha) {
                 alpha = eval;
                 best_move = move; 
             }
         } else {
-            float eval = minimax(depth - 1, WHITE, alpha, beta);
+            float eval = minimax(depth - 1, Colors::WHITE, alpha, beta);
             position.unmake_move(move, unmove);
             if (eval < beta) {
                 beta = eval;
@@ -41,11 +46,8 @@ Move SearchEngine::search(int depth, Player player) {
     return best_move;
 }
 
-float SearchEngine::minimax(int depth, Player player, float& alpha, float& beta) {
+float SearchEngine::minimax(int depth, Colors player, float& alpha, float& beta) {
     float eval; 
-    if (depth == 0) {
-        return position.get_eval();
-    }
     Move best_move;
     Unmove unmove;
 
@@ -57,17 +59,28 @@ float SearchEngine::minimax(int depth, Player player, float& alpha, float& beta)
         eval = position.eval_terminal_position();
         return eval; // no legal moves, so return empty move
     }
+
+    if (depth == 0) {
+        // if in check, extend search depth by 1 to look for checkmate / stalemate
+        if (position.is_in_check(position.find_king(player), player)) {
+            depth = 1; 
+        } 
+        else {
+            return position.get_eval();
+        }
+    }
+
     for (const auto& move : moves) {
         position.make_move(move, unmove);
-        if (player == WHITE) {
-            eval = minimax(depth - 1, BLACK, alpha, beta);
+        if (player == Colors::WHITE) {
+            eval = minimax(depth - 1, Colors::BLACK, alpha, beta);
             position.unmake_move(move, unmove);
             if (eval > alpha) {
                 alpha = eval;
                 best_move = move; 
             }
         } else {
-            eval = minimax(depth - 1, WHITE, alpha, beta);
+            eval = minimax(depth - 1, Colors::WHITE, alpha, beta);
             position.unmake_move(move, unmove);
             if (eval < beta) {
                 beta = eval;

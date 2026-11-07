@@ -41,7 +41,7 @@ class Position {
     float get_piece_value(Square sq, float phase) const;
 public:
     Position(bool setup_starting = true);
-    float get_eval() const;
+    float get_eval();
     inline PieceVector& get_pieces() {return pieces;};
     void set_pieces(PieceVector new_pieces);
     inline void set_side_to_move(Colors color) {side_to_move = color;};
@@ -54,12 +54,12 @@ public:
     inline Square get_en_passant_square() const {return en_passant_square;};
     inline uint8_t get_halfmove_num() const {return halfmove_num;};
     inline uint16_t get_fullmove_num() const {return fullmove_num;};
-    std::vector<Move> generate_moves() const;
+    std::vector<Move> generate_moves();
     std::vector<Move> generate_legal_moves();
     double eval_terminal_position() const;
     void make_move(const Move& move, Unmove& unmove);
     void unmake_move(const Move& move, const Unmove& unmove);
-    void print_moves() const;
+    void print_moves(std::vector<Move> moves) const;
     void show() const;
     bool is_square_attacked(Square sq, Colors attacker) const;
     bool is_in_check(Square king_sq, Colors king_color) const;
