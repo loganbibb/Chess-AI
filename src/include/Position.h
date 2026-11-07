@@ -37,7 +37,6 @@ class Position {
     void generate_rook_moves(Square& sq, std::vector<Move>& moves) const;
     void generate_queen_moves(Square& sq, std::vector<Move>& moves) const;
     void generate_king_moves(Square& sq, std::vector<Move>& moves) const;
-    double eval_terminal_position() const;
     float get_phase() const;
     float get_piece_value(Square sq, float phase) const;
 public:
@@ -57,6 +56,7 @@ public:
     inline uint16_t get_fullmove_num() const {return fullmove_num;};
     std::vector<Move> generate_moves() const;
     std::vector<Move> generate_legal_moves();
+    double eval_terminal_position() const;
     void make_move(const Move& move, Unmove& unmove);
     void unmake_move(const Move& move, const Unmove& unmove);
     void print_moves() const;

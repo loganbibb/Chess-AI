@@ -6,7 +6,15 @@
 using namespace std;
 
 int main() {
-    // Set up: White king on e1, white knight on e2 pinned by black rook on e8
-    Position pos; 
-    return 0;
+    Position pos;
+    PieceVector pieces = pos.get_pieces();
+    for (int i = 0; i < 64; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
+    pieces[Square("e7")] = Piece::WPAWN;
+    pieces[Square("e8")] = Piece::NOPIECE;
+    pos.set_pieces(pieces);
+    pos.set_side_to_move(Colors::WHITE);
+
+    std::vector<Move> moves = pos.generate_legal_moves();
 }

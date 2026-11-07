@@ -4,8 +4,8 @@
 add_library(chess_engine
     Square.cpp
     Piece.cpp
-    Position.cpp
     PieceVector.cpp
+    Position.cpp
     SearchEngine.cpp
 )
 
