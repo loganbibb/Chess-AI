@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include "../src/include/Position.h"
 #include "../src/include/evaluation.h"
 
@@ -9,6 +10,19 @@ protected:
 
     void set_up_starting_position() {
         pos = Position(true);
+    }
+
+    void set_up_kings(Square white_king_square = Square("e1"), Square black_king_square = Square("e8")) {
+        PieceVector pieces = pos.get_pieces();
+        if (std::find(pieces.begin(), pieces.end(), Piece::WKING) == pieces.end()) {
+            ASSERT_EQ(pieces[white_king_square], Piece::NOPIECE);
+            pieces[white_king_square] = Piece::WKING;
+        }
+        if (std::find(pieces.begin(), pieces.end(), Piece::BKING) == pieces.end()) {
+            ASSERT_EQ(pieces[black_king_square], Piece::NOPIECE);
+            pieces[black_king_square] = Piece::BKING;
+        }
+        pos.set_pieces(pieces);
     }
 };
 
@@ -272,6 +286,7 @@ TEST_F(PositionTest, PawnCaptureMove) {
     pieces[Square("e4")] = Piece::WPAWN;
     pieces[Square("d5")] = Piece::BPAWN;
     pos.set_pieces(pieces);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -312,6 +327,7 @@ TEST_F(PositionTest, PawnPromotionFlag) {
     pieces[Square("e8")] = Piece::NOPIECE;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings(Square("e1"), Square("a8"));
 
     std::vector<Move> moves = pos.generate_moves();
 
@@ -349,11 +365,17 @@ TEST_F(PositionTest, KnightMovesFromCentralSquare) {
     pieces[Square("d4")] = Piece::WKNIGHT;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
-    // Knight at d4 should have 8 possible moves
-    EXPECT_EQ(moves.size(), 8) << "Knight at d4 should have 8 possible moves";
+    int knight_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("d4")) {
+            knight_moves++;
+        }
+    }
+    EXPECT_EQ(knight_moves, 8) << "Knight at d4 should have 8 possible moves";
 }
 
 TEST_F(PositionTest, KnightCaptureMove) {
@@ -363,6 +385,7 @@ TEST_F(PositionTest, KnightCaptureMove) {
     pieces[Square("f6")] = Piece::BPAWN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -383,6 +406,7 @@ TEST_F(PositionTest, KnightBlockedByOwnPiece) {
     pieces[Square("f6")] = Piece::WPAWN;  // Own piece blocks
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -406,11 +430,17 @@ TEST_F(PositionTest, BishopMovesFromOpenPosition) {
     pieces[Square("e4")] = Piece::WBISHOP;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
-    // Bishop at e4 should have 13 available moves (all diagonals)
-    EXPECT_EQ(moves.size(), 13) << "Bishop at e4 should have 13 moves on empty board";
+    int bishop_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e4")) {
+            bishop_moves++;
+        }
+    }
+    EXPECT_EQ(bishop_moves, 13) << "Bishop at e4 should have 13 moves on an otherwise empty board";
 }
 
 TEST_F(PositionTest, BishopBlockedByPiece) {
@@ -420,6 +450,7 @@ TEST_F(PositionTest, BishopBlockedByPiece) {
     pieces[Square("c3")] = Piece::WPAWN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -441,6 +472,7 @@ TEST_F(PositionTest, BishopCaptureBlackPiece) {
     pieces[Square("c3")] = Piece::BPAWN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -464,11 +496,17 @@ TEST_F(PositionTest, RookMovesFromOpenPosition) {
     pieces[Square("e4")] = Piece::WROOK;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings(Square("a1"), Square("a8"));
     
     std::vector<Move> moves = pos.generate_moves();
     
-    // Rook at e4 should have 14 available moves (7 vertical + 7 horizontal)
-    EXPECT_EQ(moves.size(), 14) << "Rook at e4 should have 14 moves on empty board";
+    int rook_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e4")) {
+            rook_moves++;
+        }
+    }
+    EXPECT_EQ(rook_moves, 14) << "Rook at e4 should have 14 moves on an otherwise empty board";
 }
 
 TEST_F(PositionTest, RookBlockedByPiece) {
@@ -478,6 +516,7 @@ TEST_F(PositionTest, RookBlockedByPiece) {
     pieces[Square("a3")] = Piece::WPAWN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -501,11 +540,17 @@ TEST_F(PositionTest, QueenMovesFromOpenPosition) {
     pieces[Square("e4")] = Piece::WQUEEN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings(Square("a1"), Square("h8"));
     
     std::vector<Move> moves = pos.generate_moves();
     
-    // Queen at e4 should have 27 available moves (rook + bishop moves)
-    EXPECT_EQ(moves.size(), 27) << "Queen at e4 should have 27 moves on empty board";
+    int queen_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e4")) {
+            queen_moves++;
+        }
+    }
+    EXPECT_EQ(queen_moves, 27) << "Queen at e4 should have 27 moves on an otherwise empty board";
 }
 
 // ============================================================================
@@ -518,11 +563,17 @@ TEST_F(PositionTest, KingMovesFromCentralPosition) {
     pieces[Square("e4")] = Piece::WKING;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
-    // King at e4 should have 8 available moves
-    EXPECT_EQ(moves.size(), 8) << "King at e4 should have 8 moves";
+    int king_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("e4")) {
+            king_moves++;
+        }
+    }
+    EXPECT_EQ(king_moves, 8) << "King at e4 should have 8 moves";
 }
 
 TEST_F(PositionTest, KingMovesFromCorner) {
@@ -531,11 +582,17 @@ TEST_F(PositionTest, KingMovesFromCorner) {
     pieces[Square("a1")] = Piece::WKING;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
-    // King at a1 should have 3 available moves
-    EXPECT_EQ(moves.size(), 3) << "King at a1 should have 3 moves";
+    int king_moves = 0;
+    for (const auto& move : moves) {
+        if (move.from_square == Square("a1")) {
+            king_moves++;
+        }
+    }
+    EXPECT_EQ(king_moves, 3) << "King at a1 should have 3 moves";
 }
 
 // ============================================================================
@@ -563,6 +620,7 @@ TEST_F(PositionTest, CastlingKingsideAvailable) {
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("h1")] = Piece::WROOK;
     pos.set_pieces(pieces);
+    set_up_kings();
     
     // Set castling rights
     CastlingRights rights;
@@ -591,6 +649,7 @@ TEST_F(PositionTest, CastlingQueensideAvailable) {
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("a1")] = Piece::WROOK;
     pos.set_pieces(pieces);
+    set_up_kings();
     
     // Set castling rights
     CastlingRights rights;
@@ -618,6 +677,7 @@ TEST_F(PositionTest, WhiteKingsideCastlingDisabledWhenRightsFalse) {
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("h1")] = Piece::WROOK;
     pos.set_pieces(pieces);
+    set_up_kings();
 
     CastlingRights rights;
     rights.white_kingside = false;
@@ -644,6 +704,7 @@ TEST_F(PositionTest, WhiteQueensideCastlingDisabledWhenRightsFalse) {
     pieces[Square("e1")] = Piece::WKING;
     pieces[Square("a1")] = Piece::WROOK;
     pos.set_pieces(pieces);
+    set_up_kings();
 
     CastlingRights rights;
     rights.white_kingside = false;
@@ -670,6 +731,7 @@ TEST_F(PositionTest, BlackKingsideCastlingDisabledWhenRightsFalse) {
     pieces[Square("e8")] = Piece::BKING;
     pieces[Square("h8")] = Piece::BROOK;
     pos.set_pieces(pieces);
+    set_up_kings();
 
     CastlingRights rights;
     rights.white_kingside = false;
@@ -696,6 +758,7 @@ TEST_F(PositionTest, BlackQueensideCastlingDisabledWhenRightsFalse) {
     pieces[Square("e8")] = Piece::BKING;
     pieces[Square("a8")] = Piece::BROOK;
     pos.set_pieces(pieces);
+    set_up_kings();
 
     CastlingRights rights;
     rights.white_kingside = false;
@@ -724,6 +787,7 @@ TEST_F(PositionTest, BlackCannotCastleThroughCheck) {
     pieces[Square("h8")] = Piece::BROOK;
     pieces[Square("f1")] = Piece::WROOK; // attacks f8
     pos.set_pieces(pieces);
+    set_up_kings();
 
     // Grant black kingside castling rights and make it black's turn
     CastlingRights rights;
@@ -759,6 +823,7 @@ TEST_F(PositionTest, EnPassantCaptureAvailable) {
     pos.set_pieces(pieces);
     pos.set_en_passant_square(Square("e3"));
     pos.set_side_to_move(Colors::BLACK);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -810,6 +875,7 @@ TEST_F(PositionTest, MultiPiecesInteract) {
     pieces[Square("e5")] = Piece::BPAWN;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings();
     
     std::vector<Move> moves = pos.generate_moves();
     
@@ -825,6 +891,7 @@ TEST_F(PositionTest, PinnedPieceCannotMove) {
     pieces[Square("e8")] = Piece::BROOK;
     pos.set_pieces(pieces);
     pos.set_side_to_move(Colors::WHITE);
+    set_up_kings(Square("e1"), Square("a8"));
 
     std::vector<Move> moves = pos.generate_legal_moves();
 
