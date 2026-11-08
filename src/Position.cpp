@@ -683,7 +683,6 @@ void Position::make_move(const Move& move, Unmove& unmove) {
     if (side_to_move == Colors::WHITE) {
         fullmove_num++;
     }
-
 }
 
 void Position::unmake_move(const Move& move, const Unmove& unmove){

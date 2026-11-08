@@ -8,20 +8,17 @@ using namespace std;
 
 int main() {
     // Set up a custom position: White pawn at e4, Black pawn at d5
-    Position pos;
-    PieceVector pieces = pos.get_pieces();
-    pieces[Square("e4")] = Piece::WPAWN;
-    pieces[Square("d5")] = Piece::BPAWN;
+    Position pos{false};
+    SearchEngine search_engine(pos);
+    auto& pieces = pos.get_pieces();
+    pieces["a8"] = Piece::BKING;
+    pieces["a7"] = Piece::BPAWN;
+    pieces["b7"] = Piece::BPAWN;
+    pieces["f4"] = Piece::WROOK;
+    pieces["f1"] = Piece::WKING;
     pos.set_pieces(pieces);
-    
-    std::vector<Move> moves = pos.generate_moves();
-    
-    bool found_capture = false;
-    for (const auto& move : moves) {
-        if (move.from_square == Square("e4") && move.to_square == Square("d5")) {
-            found_capture = true;
-            break;
-        }
-    }
-    std::cout << "found capture? " << (found_capture) << " White pawn at e4 should be able to capture at d5";
+
+    pos.set_side_to_move(Colors::WHITE);
+    Move best_move = search_engine.search(2, Colors::WHITE);
+    std::cout << best_move.from_square.to_string() << " -> " << best_move.to_square.to_string() << std::endl;
 }

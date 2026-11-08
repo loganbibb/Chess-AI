@@ -44,7 +44,7 @@ Move SearchEngine::search(int depth, Colors player) {
     return best_move;
 }
 
-float SearchEngine::minimax(int depth, Colors player, float& alpha, float& beta) {
+float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
     float eval; 
     float best_eval = (player == Colors::WHITE) ? -std::numeric_limits<float>::infinity() : std::numeric_limits<float>::infinity();
     Unmove unmove;
