@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <iostream>
 #include "../src/include/SearchEngine.h"
 
 // Test fixture for Position tests
@@ -67,9 +68,21 @@ TEST_F(SearchEngineTest, StalemateDetection) {
     pieces["f4"] = Piece::WROOK;
     pieces["a1"] = Piece::WKING;
     pos.set_pieces(pieces);
+    testing::internal::CaptureStdout();
+    pos.show();
+    std::string output = testing::internal::GetCapturedStdout();
+    std::cout << output << std::endl;
 
     pos.set_side_to_move(Colors::WHITE);
-    Move best_move = search_engine.search(3, Colors::WHITE);
+    Move best_move = search_engine.search(4, Colors::WHITE);
     EXPECT_EQ(best_move.from_square.to_string(), "f4");
     EXPECT_EQ(best_move.to_square.to_string(), "f8");
+    Unmove unmove;
+    pos.make_move(best_move, unmove);
+
+    testing::internal::CaptureStdout();
+    pos.show();
+    output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ(output, pos.get_pieces().to_string() + "\n");
+    std::cout << output;
 }
