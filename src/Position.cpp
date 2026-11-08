@@ -567,44 +567,37 @@ std::vector<Move> Position::generate_moves() {
     return moves;
 }
 
-std::vector<Move> Position::generate_legal_moves() {
-    std::vector<Move> moves = generate_moves();
-    std::vector<Move> legal_moves;
-    for (auto& move : moves) {
-        Unmove unmove; 
-        Colors original_color = side_to_move;
-        make_move(move, unmove);
-        Square king_sq = find_king(original_color);
-        bool legal_move = true;
-        if (is_in_check(king_sq, original_color)) {
-            // moved into check, which is illegal. Remove this move from the list of legal moves.
-            legal_move = false; 
-        }
-        else if (move.is_castle) {
-            // check if king passes through a square that is attacked (illegal)
-            if (original_color == Colors::WHITE) {
-                if (move.to_square == "g1" && (!castling_rights.white_kingside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
-                    legal_move = false; 
-                }
-                else if (move.to_square == "c1" && (!castling_rights.white_queenside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
-                    legal_move = false; 
-                }
+bool Position::move_was_legal(const Move& move) {
+    /* Check whether an applied move was legal. 
+     * Assumes `move` was already applied prior to the function call.
+    */
+    Colors color_that_moved = get_opposite_color(side_to_move);
+    Square king_sq = find_king(color_that_moved);
+    bool legal_move = true;
+    if (is_in_check(king_sq, color_that_moved)) {
+        // moved into check, which is illegal. 
+        legal_move = false; 
+    }
+    else if (move.is_castle) {
+        // check if king passes through a square that is attacked (illegal)
+        if (color_that_moved == Colors::WHITE) {
+            if (move.to_square == "g1" && (!castling_rights.white_kingside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
+                legal_move = false; 
             }
-            else { // black to move
-                if (move.to_square == "g8" && (!castling_rights.black_kingside || is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE))) {
-                    legal_move = false; 
-                }
-                else if (move.to_square == "c8" && (!castling_rights.black_queenside || is_square_attacked(Square("d8"), Colors::WHITE) || is_square_attacked(Square("c8"), Colors::WHITE))) {
-                    legal_move = false; 
-                }
+            else if (move.to_square == "c1" && (!castling_rights.white_queenside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
+                legal_move = false; 
             }
         }
-        unmake_move(move, unmove);
-        if (legal_move) {
-            legal_moves.push_back(move);
+        else { // black to move
+            if (move.to_square == "g8" && (!castling_rights.black_kingside || is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE))) {
+                legal_move = false; 
+            }
+            else if (move.to_square == "c8" && (!castling_rights.black_queenside || is_square_attacked(Square("d8"), Colors::WHITE) || is_square_attacked(Square("c8"), Colors::WHITE))) {
+                legal_move = false; 
+            }
         }
     }
-    return legal_moves;
+    return legal_move;
 }
 
 void Position::make_move(const Move& move, Unmove& unmove) {

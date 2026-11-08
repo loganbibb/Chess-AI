@@ -55,7 +55,7 @@ public:
     inline uint8_t get_halfmove_num() const {return halfmove_num;};
     inline uint16_t get_fullmove_num() const {return fullmove_num;};
     std::vector<Move> generate_moves();
-    std::vector<Move> generate_legal_moves();
+    bool move_was_legal(const Move& move);
     double eval_terminal_position() const;
     void make_move(const Move& move, Unmove& unmove);
     void unmake_move(const Move& move, const Unmove& unmove);

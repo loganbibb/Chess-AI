@@ -98,7 +98,7 @@ TEST_F(PositionTest, ShowPosition) {
 TEST_F(PositionTest, PrintMovesEmitsReadableNotation) {
     set_up_starting_position();
     std::string output;
-    std::vector<Move> moves = pos.generate_legal_moves();
+    std::vector<Move> moves = pos.generate_moves();
     {
         testing::internal::CaptureStdout();
         pos.print_moves(moves);
@@ -893,11 +893,20 @@ TEST_F(PositionTest, PinnedPieceCannotMove) {
     pos.set_side_to_move(Colors::WHITE);
     set_up_kings(Square("e1"), Square("a8"));
 
-    std::vector<Move> moves = pos.generate_legal_moves();
+    std::vector<Move> moves = pos.generate_moves();
+    std::vector<Move> legal_moves;
+    Unmove unmove;
+    for (auto& move : moves) {
+        pos.make_move(move, unmove);
+        if (pos.move_was_legal(move)) {
+            legal_moves.push_back(std::move(move));
+        }
+        pos.unmake_move(move, unmove);
+    }
 
     // The knight on e2 is pinned along the e-file and should have no legal moves
     bool found_move_from_e2 = false;
-    for (const auto &move : moves) {
+    for (const auto &move : legal_moves) {
         if (move.from_square == Square("e2")) {
             found_move_from_e2 = true;
             break;

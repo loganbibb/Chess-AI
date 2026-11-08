@@ -121,7 +121,7 @@ TEST_F(SearchEngineTest, BasicCapture) {
     show_board();
 
     EXPECT_EQ(pos.get_side_to_move(), Colors::BLACK);
-    Move best_move = search_engine.search(6, Colors::BLACK);
+    Move best_move = search_engine.search(4, Colors::BLACK);
     EXPECT_EQ(best_move.from_square.to_string(), "f6");
     EXPECT_EQ(best_move.to_square.to_string(), "h5");
 }

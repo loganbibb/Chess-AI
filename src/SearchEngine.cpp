@@ -13,7 +13,7 @@ Move SearchEngine::search(int depth, Colors player) {
     Unmove unmove; 
 
     // generate all legal moves and call minimax on each
-    std::vector<Move> moves = position.generate_legal_moves();
+    std::vector<Move> moves = position.generate_moves();
 
     // first, check for terminal position 
     if (moves.empty()) {
@@ -21,21 +21,24 @@ Move SearchEngine::search(int depth, Colors player) {
     }
     for (const auto& move : moves) {
         position.make_move(move, unmove);
+        if (!position.move_was_legal(move)) {
+            position.unmake_move(move, unmove); 
+            continue;
+        }
         if (player == Colors::WHITE) {
             float eval = minimax(depth - 1, Colors::BLACK, alpha, beta);
-            position.unmake_move(move, unmove);
             if (eval > alpha) {
                 alpha = eval;
                 best_move = move; 
             }
         } else {
             float eval = minimax(depth - 1, Colors::WHITE, alpha, beta);
-            position.unmake_move(move, unmove);
             if (eval < beta) {
                 beta = eval;
                 best_move = move;
             }
         }
+        position.unmake_move(move, unmove);
         // alpha-beta pruning
         if (beta <= alpha) {
             break; // prune remaining moves
@@ -50,7 +53,7 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
     Unmove unmove;
 
     // generate all legal moves and call minimax on each
-    std::vector<Move> moves = position.generate_legal_moves();
+    std::vector<Move> moves = position.generate_moves();
 
     // first, check for terminal position 
     if (moves.empty()) {
@@ -70,25 +73,33 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
 
     for (const auto& move : moves) {
         position.make_move(move, unmove);
+        if (!position.move_was_legal(move)) {
+            position.unmake_move(move, unmove); 
+            continue;
+        }
         if (player == Colors::WHITE) {
             eval = minimax(depth - 1, Colors::BLACK, alpha, beta);
-            position.unmake_move(move, unmove);
             if (eval > alpha) {
                 alpha = eval;
                 best_eval = eval; 
             }
         } else {
             eval = minimax(depth - 1, Colors::WHITE, alpha, beta);
-            position.unmake_move(move, unmove);
             if (eval < beta) {
                 beta = eval;
                 best_eval = eval;
             }
         }
+        position.unmake_move(move, unmove);
         // alpha-beta pruning
         if (beta <= alpha) {
             break; // prune remaining moves
         }
+    }
+
+    // if no legal moves, do terminal position evaluation
+    if (best_eval == -std::numeric_limits<float>::infinity() || best_eval == std::numeric_limits<float>::infinity()) {
+        best_eval = position.eval_terminal_position();
     }
     return best_eval;
 }
