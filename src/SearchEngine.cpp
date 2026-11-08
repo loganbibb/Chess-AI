@@ -1,8 +1,6 @@
-#include <cmath>
 #include <limits>
 
 #include "error_types.h"
-#include "evaluation.h"
 #include "SearchEngine.h"
 
 Move SearchEngine::search(int depth, Colors player) {
@@ -48,7 +46,7 @@ Move SearchEngine::search(int depth, Colors player) {
 
 float SearchEngine::minimax(int depth, Colors player, float& alpha, float& beta) {
     float eval; 
-    Move best_move;
+    float best_eval = (player == Colors::WHITE) ? -std::numeric_limits<float>::infinity() : std::numeric_limits<float>::infinity();
     Unmove unmove;
 
     // generate all legal moves and call minimax on each
@@ -77,14 +75,14 @@ float SearchEngine::minimax(int depth, Colors player, float& alpha, float& beta)
             position.unmake_move(move, unmove);
             if (eval > alpha) {
                 alpha = eval;
-                best_move = move; 
+                best_eval = eval; 
             }
         } else {
             eval = minimax(depth - 1, Colors::WHITE, alpha, beta);
             position.unmake_move(move, unmove);
             if (eval < beta) {
                 beta = eval;
-                best_move = move;
+                best_eval = eval;
             }
         }
         // alpha-beta pruning
@@ -92,5 +90,5 @@ float SearchEngine::minimax(int depth, Colors player, float& alpha, float& beta)
             break; // prune remaining moves
         }
     }
-    return eval;
+    return best_eval;
 }
