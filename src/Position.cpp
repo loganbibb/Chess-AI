@@ -32,6 +32,10 @@ void Position::setup_starting_position() {
     for (int i = 8; i < 16; i++) {
         pieces[i] = Piece::WPAWN;
     }
+    // no man's land
+    for (int i = 16; i < 48; i++) {
+        pieces[i] = Piece::NOPIECE;
+    }
 
     // black pieces
     pieces[56] = Piece::BROOK;
@@ -45,6 +49,18 @@ void Position::setup_starting_position() {
     for (int i = 48; i < 56; i++) {
         pieces[i] = Piece::BPAWN;
     }
+
+    side_to_move = Colors::WHITE; 
+    // castling rights
+    white_check = false;
+    black_check = false;
+    castling_rights = CastlingRights();
+    // en passant target square, if applicable. Otherwise, set to 0.
+    en_passant_square = Square();
+    // halfmove clock for 50-move rule
+    halfmove_num = 0;
+    // full move number, starting at 1
+    fullmove_num = 0;
 
 }
 
@@ -119,10 +135,16 @@ float Position::get_eval() {
      * Note this function does NOT provide a terminal evaluation, so it will return a standard PST-based
      * evaluation for checkmate or stalemate positions. Terminal evaluation should be called in the 
      * search engine.
+     * It will return a stalemate value if the 50-move rule is reached.
      * The evaluation is calculated using piece values and piece-square tables (PSTs) for
      * each piece type, with the evaluation being a weighted sum of the middlegame and endgame 
      * evaluations based on the phase of the game.
     */
+
+    // check for 50-move rule
+    if (halfmove_num >= 100) {
+        return eval::STALEMATE; // stalemate value
+    }
 
     // normal position evaluation
     float phase = get_phase();

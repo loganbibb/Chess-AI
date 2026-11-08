@@ -64,5 +64,4 @@ public:
     bool is_square_attacked(Square sq, Colors attacker) const;
     bool is_in_check(Square king_sq, Colors king_color) const;
     Square find_king(Colors king_color) const;
-    
 };
