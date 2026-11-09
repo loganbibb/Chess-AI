@@ -14,7 +14,6 @@ TEST_F(MoveTest, DefaultConstructor) {
     Move m;
     EXPECT_EQ((int8_t)m.from_square, 0);
     EXPECT_EQ((int8_t)m.to_square, 0);
-    EXPECT_FALSE(m.is_check);
     EXPECT_FALSE(m.is_castle);
     EXPECT_FALSE(m.is_promotion);
     EXPECT_FALSE(m.is_en_passant);
@@ -29,7 +28,6 @@ TEST_F(MoveTest, SimpleMove) {
     
     EXPECT_EQ((int8_t)m.from_square, 0);
     EXPECT_EQ((int8_t)m.to_square, 1);
-    EXPECT_FALSE(m.is_check);
     EXPECT_FALSE(m.is_castle);
 }
 
@@ -42,16 +40,6 @@ TEST_F(MoveTest, PawnMove) {
     EXPECT_EQ(m.from_square.rank(), 1);
     EXPECT_EQ(m.to_square.file(), 4);
     EXPECT_EQ(m.to_square.rank(), 3);
-}
-
-// Check move tests
-TEST_F(MoveTest, CheckMove) {
-    Move m;
-    m.from_square = Square("e4");
-    m.to_square = Square("e8");
-    m.is_check = true;
-    
-    EXPECT_TRUE(m.is_check);
 }
 
 // Capture move tests
@@ -143,26 +131,14 @@ TEST_F(MoveTest, EnPassantMove) {
     EXPECT_TRUE(m.is_en_passant);
 }
 
-// Complex move tests (combined flags)
-TEST_F(MoveTest, CheckAndCapture) {
-    Move m;
-    m.from_square = Square("e4");
-    m.to_square = Square("f6");
-    m.is_check = true;
-    
-    EXPECT_TRUE(m.is_check);
-}
-
 TEST_F(MoveTest, PromotionWithCheck) {
     Move m;
     m.from_square = Square("a7");
     m.to_square = Square("a8");
     m.is_promotion = true;
-    m.is_check = true;
     m.promotion_piece = Piece::WQUEEN;
     
     EXPECT_TRUE(m.is_promotion);
-    EXPECT_TRUE(m.is_check);
     EXPECT_EQ(m.promotion_piece, Piece::WQUEEN);
 }
 

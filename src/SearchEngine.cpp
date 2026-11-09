@@ -63,7 +63,8 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
 
     if (depth == 0) {
         // if in check, extend search depth by 1 to look for checkmate / stalemate
-        if (position.is_in_check(position.find_king(player), player)) {
+        Square king_sq = (player == Colors::WHITE) ? position.get_white_king_square() : position.get_black_king_square() ;
+        if (position.is_in_check(king_sq)) {
             depth = 1; 
         } 
         else {

@@ -52,8 +52,6 @@ void Position::setup_starting_position() {
 
     side_to_move = Colors::WHITE; 
     // castling rights
-    white_check = false;
-    black_check = false;
     castling_rights = CastlingRights();
     // en passant target square, if applicable. Otherwise, set to 0.
     en_passant_square = Square();
@@ -477,7 +475,8 @@ double Position::eval_terminal_position() const {
      * This function only returns the score based on whether 
      * the position is checkmate (return +/-inf) or stalemate (return 0).
     */
-   if (is_in_check(find_king(side_to_move), side_to_move)) {
+    Square king_sq = (side_to_move == Colors::WHITE) ? white_king_sq : black_king_sq;
+    if (is_in_check(king_sq)) {
         // checkmate
         if (side_to_move == Colors::WHITE) {
             return -1E10;
@@ -550,20 +549,6 @@ std::vector<Move> Position::generate_moves() {
             }
         }
     }
-
-    // lastly, assign is_check to true for moves that result in a check. 
-    for (auto& move : moves) {
-        Unmove unmove; 
-        make_move(move, unmove);
-        // after make_move, side_to_move has changed, so find the king of the opposite color
-        Square king_sq = find_king(side_to_move); 
-        if (is_in_check(king_sq, side_to_move)) {
-            // the move results in a check, so set is_check to true
-            move.is_check = true;
-        }
-        unmake_move(move, unmove);
-    }
-
     return moves;
 }
 
@@ -572,9 +557,9 @@ bool Position::move_was_legal(const Move& move) {
      * Assumes `move` was already applied prior to the function call.
     */
     Colors color_that_moved = get_opposite_color(side_to_move);
-    Square king_sq = find_king(color_that_moved);
+    Square king_sq = (color_that_moved == Colors::WHITE) ? white_king_sq : black_king_sq;
     bool legal_move = true;
-    if (is_in_check(king_sq, color_that_moved)) {
+    if (is_in_check(king_sq)) {
         // moved into check, which is illegal. 
         legal_move = false; 
     }
@@ -614,6 +599,18 @@ void Position::make_move(const Move& move, Unmove& unmove) {
     unmove.fullmove_num = fullmove_num;
     unmove.castling_rights = castling_rights;
     unmove.en_passant_square = en_passant_square;
+
+    // update king squares
+    if (pieces[move.from_square] == Piece::WKING) {
+        white_king_sq = move.to_square;
+        castling_rights.white_kingside = false;
+        castling_rights.white_queenside = false;
+    }
+    else if (pieces[move.from_square] == Piece::BKING) {
+        black_king_sq = move.to_square;
+        castling_rights.black_kingside = false;
+        castling_rights.black_queenside = false;
+    }
 
     // halfmove clock 
     if (pieces[move.to_square] != Piece::NOPIECE || pieces[move.from_square] == Piece::WPAWN || pieces[move.from_square] == Piece::BPAWN) {
@@ -675,15 +672,6 @@ void Position::make_move(const Move& move, Unmove& unmove) {
         }
     }
 
-    // handle checks 
-    if (move.is_check) {
-        if (side_to_move == Colors::WHITE) {
-            black_check = true;
-        } else {
-            white_check = true;
-        }
-    }
-
     // update ep_square if applicable 
     if (pieces[move.to_square()] == Piece::WPAWN && move.to_square.rank() == 3) {
         en_passant_square = Square(move.to_square.file(), 2);
@@ -701,8 +689,9 @@ void Position::make_move(const Move& move, Unmove& unmove) {
 }
 
 void Position::unmake_move(const Move& move, const Unmove& unmove){
-    // return side_to_move
+    // Reset side_to_move
     side_to_move = (side_to_move == Colors::WHITE)? Colors::BLACK : Colors::WHITE; 
+
     // Reset Position from unmove 
     pieces[move.from_square] = pieces[move.to_square];
     pieces[move.to_square] = unmove.captured_piece; 
@@ -710,6 +699,14 @@ void Position::unmake_move(const Move& move, const Unmove& unmove){
     fullmove_num = unmove.fullmove_num; 
     castling_rights = unmove.castling_rights; 
     en_passant_square = unmove.en_passant_square; 
+
+    // Reset king_sq
+    if (pieces[move.to_square] == Piece::WKING) {
+        white_king_sq = move.from_square;
+    }
+    else if (pieces[move.to_square] == Piece::BKING) { 
+        black_king_sq = move.from_square;
+    }
 
     // special conditions 
     if (move.is_castle) { 
@@ -754,7 +751,8 @@ void Position::unmake_move(const Move& move, const Unmove& unmove){
     }
 }
 
-void Position::print_moves(std::vector<Move> moves) const {
+void Position::print_moves(std::vector<Move> moves) {
+    /* Assumes the position state is such that the moves can be applied to it. */
     for (const Move& move : moves) {
         std::string notation;
 
@@ -814,11 +812,28 @@ void Position::print_moves(std::vector<Move> moves) const {
                 notation += "=" + std::string(1, promotion_char);
             }
 
-            if (move.is_check) {
-                notation += "+";
+            // handle checks 
+            Square opp_king_sq = (side_to_move == Colors::WHITE)? black_king_sq : white_king_sq;
+            if (is_in_check(opp_king_sq)) {
+                Unmove unmove; 
+                make_move(move, unmove);
+                std::vector<Move> moves = generate_moves();
+                bool is_checkmate{true};
+                for (auto& move : moves) {
+                    if (move_was_legal(move)) {
+                        // at least one legal move for the opponent -- not a checkmate
+                        is_checkmate = false; 
+                        break;
+                    }
+                }
+                if (is_checkmate) {
+                    notation += "#";
+                }
+                else {
+                    notation += "+";
+                }
             }
         }
-
         std::cout << notation << std::endl;
     }
 }
@@ -939,15 +954,7 @@ bool Position::is_square_attacked(Square sq, Colors attacker) const {
     return false; // no attacks found 
 }
 
-bool Position::is_in_check(Square king_sq, Colors king_color) const {
+bool Position::is_in_check(Square king_sq) const {
+    Colors king_color = get_piece_color(pieces[king_sq]);
     return is_square_attacked(king_sq, get_opposite_color(king_color));
-}
-
-Square Position::find_king(Colors king_color) const {
-    auto it = std::find(pieces.begin(), pieces.end(), (king_color == Colors::WHITE) ? Piece::WKING : Piece::BKING);
-    auto dist = std::distance(pieces.begin(), it);
-    if (dist < 0 || dist >= 64) {
-        throw Exceptions::InvalidPositionException("King not found on the board.");
-    }
-    return Square(static_cast<int>(dist));
 }

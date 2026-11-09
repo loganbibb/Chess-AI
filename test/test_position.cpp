@@ -174,8 +174,8 @@ TEST_F(PositionTest, StartingPositionNotInCheck) {
     Square white_king("e1");
     Square black_king("e8");
 
-    EXPECT_FALSE(pos.is_in_check(white_king, Colors::WHITE));
-    EXPECT_FALSE(pos.is_in_check(black_king, Colors::BLACK));
+    EXPECT_FALSE(pos.is_in_check(white_king));
+    EXPECT_FALSE(pos.is_in_check(black_king));
 }
 
 TEST_F(PositionTest, WhiteKingIsInCheckByBlackRook) {
@@ -185,7 +185,7 @@ TEST_F(PositionTest, WhiteKingIsInCheckByBlackRook) {
     pos.set_pieces(pieces);
 
     Square king_sq("e1");
-    EXPECT_TRUE(pos.is_in_check(king_sq, Colors::WHITE));
+    EXPECT_TRUE(pos.is_in_check(king_sq));
 }
 
 TEST_F(PositionTest, WhiteKingIsInCheckByBlackBishop) {
@@ -195,7 +195,7 @@ TEST_F(PositionTest, WhiteKingIsInCheckByBlackBishop) {
     pos.set_pieces(pieces);
 
     Square king_sq("e1");
-    EXPECT_TRUE(pos.is_in_check(king_sq, Colors::WHITE));
+    EXPECT_TRUE(pos.is_in_check(king_sq));
 }
 
 TEST_F(PositionTest, BlackKingIsInCheckByWhiteKnight) {
@@ -205,7 +205,7 @@ TEST_F(PositionTest, BlackKingIsInCheckByWhiteKnight) {
     pos.set_pieces(pieces);
 
     Square king_sq("e8");
-    EXPECT_TRUE(pos.is_in_check(king_sq, Colors::BLACK));
+    EXPECT_TRUE(pos.is_in_check(king_sq));
 }
 
 TEST_F(PositionTest, AttackIsBlockedByOwnPiece) {
@@ -216,7 +216,7 @@ TEST_F(PositionTest, AttackIsBlockedByOwnPiece) {
     pos.set_pieces(pieces);
 
     Square king_sq("e1");
-    EXPECT_FALSE(pos.is_in_check(king_sq, Colors::WHITE));
+    EXPECT_FALSE(pos.is_in_check(king_sq));
 }
 
 TEST_F(PositionTest, IsSquareAttackedByWhitePawn) {
