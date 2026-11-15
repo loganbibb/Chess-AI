@@ -1,9 +1,7 @@
 #pragma once 
 
 #include <array> 
-#include <vector>
 #include <string>
-#include <stdint.h>
 
 #include "error_types.h"
 #include "Piece.h"

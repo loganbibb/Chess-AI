@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <string> 
+#include <queue>
 
 #include "Piece.h"
 #include "Square.h"
@@ -15,4 +16,7 @@ struct Move {
     bool is_en_passant = false;
 
     Piece promotion_piece = Piece::NOPIECE; // only used if is_promotion is true
+    bool operator<(const Move& other) const;
 };
+
+using MoveList = std::priority_queue<Move, std::vector<Move>, std::less<Move>>;

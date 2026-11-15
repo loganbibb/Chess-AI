@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <vector>
 
 #include "include/Move.h"
 #include "include/Piece.h"
@@ -59,6 +60,9 @@ void Position::setup_starting_position() {
     halfmove_num = 0;
     // full move number, starting at 1
     fullmove_num = 0;
+    // king squares
+    white_king_sq = Square("e1");
+    black_king_sq = Square("e8");
 
 }
 
@@ -158,11 +162,11 @@ void Position::set_pieces(PieceVector new_pieces) {
     pieces = new_pieces;
 }
 
-void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) const {
+void Position::generate_pawn_moves(Square& sq, MoveList& moves) const {
     /*
      * Handle pawn move generation. 
      * Generates a series of moves for a pawn at the given square, including normal moves, captures, en passant, and promotions.
-     * Returns a vector of Moves.
+     * Appends moves to the MoveList.
      * NOTE: this function does not check for checks, so it may generate illegal moves. This is intentional, as it allows for 
      * faster move generation. The legality of moves will be checked in generate_moves().
     */
@@ -302,10 +306,12 @@ void Position::generate_pawn_moves(Square& sq, std::vector<Move>& moves) const {
     }
 
     // add generated pawn moves to moves vector
-    moves.insert(moves.end(), pawn_moves.begin(), pawn_moves.end());
+    for (auto& move : pawn_moves) {
+        moves.push(move);
+    }
 }
 
-void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) const {
+void Position::generate_knight_moves(Square& sq, MoveList& moves) const {
     Square candidate_sq = sq; 
     Colors own_color = get_piece_color(pieces[sq]);
     for (const auto& offset : offsets::knight_move_offsets) {
@@ -317,12 +323,12 @@ void Position::generate_knight_moves(Square& sq, std::vector<Move>& moves) const
             new_move.is_castle = false;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push_back(new_move);
+            moves.push(new_move);
         }
     }
 }
 
-void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) const {
+void Position::generate_bishop_moves(Square& sq, MoveList& moves) const {
     Square candidate_sq = sq;
     Colors own_color = get_piece_color(pieces[sq]);
 
@@ -341,7 +347,7 @@ void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) const
                 new_move.is_castle = false;
                 new_move.is_promotion = false; 
                 new_move.is_en_passant = false;
-                moves.push_back(new_move);
+                moves.push(new_move);
                 if (pieces[candidate_sq] != Piece::NOPIECE) {
                     break; // cannot jump over pieces, so stop looking in this direction after a capture
                 }
@@ -356,7 +362,7 @@ void Position::generate_bishop_moves(Square& sq, std::vector<Move>& moves) const
     }
 }
 
-void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) const {
+void Position::generate_rook_moves(Square& sq, MoveList& moves) const {
     Square candidate_sq = sq;
     Colors own_color = get_piece_color(pieces[sq]);
 
@@ -375,7 +381,7 @@ void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) const {
                 new_move.is_castle = false;
                 new_move.is_promotion = false; 
                 new_move.is_en_passant = false;
-                moves.push_back(new_move);
+                moves.push(new_move);
                 if (pieces[candidate_sq] != Piece::NOPIECE) {
                     break; // cannot jump over pieces, so stop looking in this direction after a capture
                 }
@@ -387,15 +393,14 @@ void Position::generate_rook_moves(Square& sq, std::vector<Move>& moves) const {
     }
 }
 
-void Position::generate_queen_moves(Square& sq, std::vector<Move>& moves) const {
+void Position::generate_queen_moves(Square& sq, MoveList& moves) const {
     // queen moves are just sum of rook and bishop moves
     generate_bishop_moves(sq, moves);
     generate_rook_moves(sq, moves);
 }
 
-void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
+void Position::generate_king_moves(Square& sq, MoveList& moves) const {
     
-
     Square candidate_sq = sq; 
     Colors own_color = get_piece_color(pieces[sq]);
 
@@ -409,7 +414,7 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
             new_move.is_castle = false;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push_back(new_move);
+            moves.push(new_move);
         }
     }
 
@@ -427,7 +432,7 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push_back(new_move);
+            moves.push(new_move);
         }
         if (castling_rights.white_queenside && 
             pieces["e1"] == Piece::WKING && pieces["a1"] == Piece::WROOK && 
@@ -438,7 +443,7 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push_back(new_move);
+            moves.push(new_move);
         }
     }
     else { // black to move 
@@ -451,7 +456,7 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push_back(new_move);
+            moves.push(new_move);
         }
         if (castling_rights.black_queenside && 
             pieces["e8"] == Piece::WKING && pieces["a8"] == Piece::WROOK && 
@@ -462,7 +467,7 @@ void Position::generate_king_moves(Square& sq, std::vector<Move>& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push_back(new_move);
+            moves.push(new_move);
         }
     }
 
@@ -491,8 +496,8 @@ double Position::eval_terminal_position() const {
    }
 }
 
-std::vector<Move> Position::generate_moves() {
-    std::vector<Move> moves;
+MoveList Position::generate_moves() {
+    MoveList moves;
     if (side_to_move == Colors::WHITE) {
         for (int i = 0; i < 64; i++) {
             if (pieces[i] == Piece::WPAWN) {
@@ -692,14 +697,6 @@ void Position::unmake_move(const Move& move, const Unmove& unmove){
     // Reset side_to_move
     side_to_move = (side_to_move == Colors::WHITE)? Colors::BLACK : Colors::WHITE; 
 
-    // Reset Position from unmove 
-    pieces[move.from_square] = pieces[move.to_square];
-    pieces[move.to_square] = unmove.captured_piece; 
-    halfmove_num = unmove.halfmove_num; 
-    fullmove_num = unmove.fullmove_num; 
-    castling_rights = unmove.castling_rights; 
-    en_passant_square = unmove.en_passant_square; 
-
     // Reset king_sq
     if (pieces[move.to_square] == Piece::WKING) {
         white_king_sq = move.from_square;
@@ -707,6 +704,14 @@ void Position::unmake_move(const Move& move, const Unmove& unmove){
     else if (pieces[move.to_square] == Piece::BKING) { 
         black_king_sq = move.from_square;
     }
+    
+    // Reset Position from unmove 
+    pieces[move.from_square] = pieces[move.to_square];
+    pieces[move.to_square] = unmove.captured_piece; 
+    halfmove_num = unmove.halfmove_num; 
+    fullmove_num = unmove.fullmove_num; 
+    castling_rights = unmove.castling_rights; 
+    en_passant_square = unmove.en_passant_square; 
 
     // special conditions 
     if (move.is_castle) { 
@@ -751,9 +756,12 @@ void Position::unmake_move(const Move& move, const Unmove& unmove){
     }
 }
 
-void Position::print_moves(std::vector<Move> moves) {
-    /* Assumes the position state is such that the moves can be applied to it. */
-    for (const Move& move : moves) {
+void Position::print_moves(MoveList& in_moves) {
+    // create a copy of the moves that we can safely pop from
+    MoveList moves = in_moves;
+    while (!moves.empty()) {
+        Move move = moves.top();
+        moves.pop();
         std::string notation;
 
         if (move.is_castle) {
@@ -817,9 +825,10 @@ void Position::print_moves(std::vector<Move> moves) {
             if (is_in_check(opp_king_sq)) {
                 Unmove unmove; 
                 make_move(move, unmove);
-                std::vector<Move> moves = generate_moves();
+                MoveList new_moves = generate_moves();
+                unmake_move(move, unmove);
                 bool is_checkmate{true};
-                for (auto& move : moves) {
+                while (!new_moves.empty()) {
                     if (move_was_legal(move)) {
                         // at least one legal move for the opponent -- not a checkmate
                         is_checkmate = false; 

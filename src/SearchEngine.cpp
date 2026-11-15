@@ -13,13 +13,15 @@ Move SearchEngine::search(int depth, Colors player) {
     Unmove unmove; 
 
     // generate all legal moves and call minimax on each
-    std::vector<Move> moves = position.generate_moves();
+    MoveList moves = position.generate_moves();
 
     // first, check for terminal position 
     if (moves.empty()) {
         return best_move; // no legal moves, so return empty move
     }
-    for (const auto& move : moves) {
+    while (!moves.empty()) {
+        Move move = moves.top();
+        moves.pop();
         position.make_move(move, unmove);
         if (!position.move_was_legal(move)) {
             position.unmake_move(move, unmove); 
@@ -53,7 +55,7 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
     Unmove unmove;
 
     // generate all legal moves and call minimax on each
-    std::vector<Move> moves = position.generate_moves();
+    MoveList moves = position.generate_moves();
 
     // first, check for terminal position 
     if (moves.empty()) {
@@ -72,7 +74,9 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
         }
     }
 
-    for (const auto& move : moves) {
+    while (!moves.empty()) {
+        Move move = moves.top();
+        moves.pop();
         position.make_move(move, unmove);
         if (!position.move_was_legal(move)) {
             position.unmake_move(move, unmove); 

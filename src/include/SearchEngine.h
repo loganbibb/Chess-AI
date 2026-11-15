@@ -1,5 +1,4 @@
-#ifndef SEARCH_ENGINE_H
-#define SEARCH_ENGINE_H
+#pragma once
 
 #include "Position.h"
 
@@ -11,5 +10,3 @@ class SearchEngine {
         void link_position(Position& new_position) {position = new_position;};
         Move search(int depth, Colors player);
 };
-
-#endif

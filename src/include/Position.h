@@ -1,8 +1,5 @@
 #pragma once 
 
-#include <vector>
-#include <stdint.h>
-
 #include "CastlingRights.h"
 #include "Move.h" 
 #include "Piece.h"
@@ -32,12 +29,12 @@ class Position {
 
     // functions 
     void setup_starting_position();
-    void generate_pawn_moves(Square& sq, std::vector<Move>& moves) const;
-    void generate_knight_moves(Square& sq, std::vector<Move>& moves) const;
-    void generate_bishop_moves(Square& sq, std::vector<Move>& moves) const;
-    void generate_rook_moves(Square& sq, std::vector<Move>& moves) const;
-    void generate_queen_moves(Square& sq, std::vector<Move>& moves) const;
-    void generate_king_moves(Square& sq, std::vector<Move>& moves) const;
+    void generate_pawn_moves(Square& sq, MoveList& moves) const;
+    void generate_knight_moves(Square& sq, MoveList& moves) const;
+    void generate_bishop_moves(Square& sq, MoveList& moves) const;
+    void generate_rook_moves(Square& sq, MoveList& moves) const;
+    void generate_queen_moves(Square& sq, MoveList& moves) const;
+    void generate_king_moves(Square& sq, MoveList& moves) const;
     float get_phase() const;
     float get_piece_value(Square sq, float phase) const;
 public:
@@ -55,14 +52,16 @@ public:
     inline Square get_en_passant_square() const {return en_passant_square;};
     inline uint8_t get_halfmove_num() const {return halfmove_num;};
     inline uint16_t get_fullmove_num() const {return fullmove_num;};
-    inline bool get_white_king_square() const {return white_king_sq;};
-    inline bool get_black_king_square() const {return black_king_sq;};
-    std::vector<Move> generate_moves();
+    inline Square get_white_king_square() const {return white_king_sq;};
+    inline Square get_black_king_square() const {return black_king_sq;};
+    inline void set_white_king_square(Square sq) {white_king_sq = sq;};
+    inline void set_black_king_square(Square sq) {black_king_sq = sq;};
+    MoveList generate_moves();
     bool move_was_legal(const Move& move);
     double eval_terminal_position() const;
     void make_move(const Move& move, Unmove& unmove);
     void unmake_move(const Move& move, const Unmove& unmove);
-    void print_moves(std::vector<Move> moves);
+    void print_moves(MoveList& moves);
     void show() const;
     bool is_square_attacked(Square sq, Colors attacker) const;
     bool is_in_check(Square king_sq) const;

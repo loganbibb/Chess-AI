@@ -34,10 +34,28 @@ protected:
         if (std::find(pieces.begin(), pieces.end(), Piece::WKING) == pieces.end()) {
             ASSERT_EQ(pieces[white_king_square], Piece::NOPIECE);
             pieces[white_king_square] = Piece::WKING;
+            pos.set_white_king_square(white_king_square);
+        } else {
+            // still set the king square even if the king is already on the board
+            for (int i = 0; i < 64; ++i) {
+                if (pieces[i] == Piece::WKING) {
+                    pos.set_white_king_square(Square(i));
+                    break;
+                }
+            }
         }
         if (std::find(pieces.begin(), pieces.end(), Piece::BKING) == pieces.end()) {
             ASSERT_EQ(pieces[black_king_square], Piece::NOPIECE);
             pieces[black_king_square] = Piece::BKING;
+            pos.set_black_king_square(black_king_square);
+        } else {
+            // still set the king square even if the king is already on the board
+            for (int i = 0; i < 64; ++i) {
+                if (pieces[i] == Piece::BKING) {
+                    pos.set_black_king_square(Square(i));
+                    break;
+                }
+            }
         }
         pos.set_pieces(pieces);
     }
@@ -53,12 +71,11 @@ protected:
 // Move generation tests
 TEST_F(SearchEngineTest, BackRankMateInOne) {
     auto& pieces = pos.get_pieces();
-    pieces["a8"] = Piece::BKING;
     pieces["a7"] = Piece::BPAWN;
     pieces["b7"] = Piece::BPAWN;
     pieces["f4"] = Piece::WROOK;
-    pieces["f1"] = Piece::WKING;
     pos.set_pieces(pieces);
+    set_up_kings(Square("f1"), Square("a8"));
 
     pos.set_side_to_move(Colors::WHITE);
     Move best_move = search_engine.search(1, Colors::WHITE);
@@ -68,12 +85,11 @@ TEST_F(SearchEngineTest, BackRankMateInOne) {
 
 TEST_F(SearchEngineTest, BackRankMateInOneSearchDepthTwo) {
     auto& pieces = pos.get_pieces();
-    pieces["a8"] = Piece::BKING;
     pieces["a7"] = Piece::BPAWN;
     pieces["b7"] = Piece::BPAWN;
     pieces["f4"] = Piece::WROOK;
-    pieces["f1"] = Piece::WKING;
     pos.set_pieces(pieces);
+    set_up_kings(Square("f1"), Square("a8"));
 
     pos.set_side_to_move(Colors::WHITE);
     Move best_move = search_engine.search(2, Colors::WHITE);
@@ -83,14 +99,13 @@ TEST_F(SearchEngineTest, BackRankMateInOneSearchDepthTwo) {
 
 TEST_F(SearchEngineTest, StalemateDetection) {
     auto& pieces = pos.get_pieces();
-    pieces["a8"] = Piece::BKING;
     pieces["a7"] = Piece::BPAWN;
     pieces["b7"] = Piece::BPAWN;
     pieces["h6"] = Piece::BBISHOP;
     pieces["c2"] = Piece::BQUEEN;
     pieces["f4"] = Piece::WROOK;
-    pieces["a1"] = Piece::WKING;
     pos.set_pieces(pieces);
+    set_up_kings(Square("a1"), Square("a8"));
     testing::internal::CaptureStdout();
     pos.show();
     std::string output = testing::internal::GetCapturedStdout();
@@ -121,7 +136,7 @@ TEST_F(SearchEngineTest, BasicCapture) {
     show_board();
 
     EXPECT_EQ(pos.get_side_to_move(), Colors::BLACK);
-    Move best_move = search_engine.search(4, Colors::BLACK);
+    Move best_move = search_engine.search(6, Colors::BLACK);
     EXPECT_EQ(best_move.from_square.to_string(), "f6");
     EXPECT_EQ(best_move.to_square.to_string(), "h5");
 }
