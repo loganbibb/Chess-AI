@@ -83,7 +83,7 @@ float Position::get_piece_value(Square sq, float phase) const {
     Piece piece = pieces[sq];
     int index = std::abs(static_cast<int>(piece));  // 0-6; will index into eval's piece_values array.
     float sign = (static_cast<int>(piece) > 0) ? 1 : -1; // sign is negative for black pieces
-    if (index < 0 && index > 7) {
+    if (index < 0 || index > 6) {
         throw Exceptions::InvalidPieceException();
     }
     float mg_val = static_cast<float>(::eval::middlegame::piece_values[index]);
@@ -448,7 +448,7 @@ void Position::generate_king_moves(Square& sq, MoveList& moves) const {
     }
     else { // black to move 
         if (castling_rights.black_kingside && 
-            pieces["e8"] == Piece::WKING && pieces["h8"] == Piece::WROOK && 
+            pieces["e8"] == Piece::BKING && pieces["h8"] == Piece::BROOK && 
             pieces["f8"] == Piece::NOPIECE && pieces["g8"] == Piece::NOPIECE) {
             Move new_move;
             new_move.from_square = sq; 
@@ -571,18 +571,18 @@ bool Position::move_was_legal(const Move& move) {
     else if (move.is_castle) {
         // check if king passes through a square that is attacked (illegal)
         if (color_that_moved == Colors::WHITE) {
-            if (move.to_square == "g1" && (!castling_rights.white_kingside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
+            if (move.to_square == "g1" && (!castling_rights.white_kingside || is_square_attacked(Square("e1"), Colors::BLACK) || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
                 legal_move = false; 
             }
-            else if (move.to_square == "c1" && (!castling_rights.white_queenside || is_square_attacked(Square("f1"), Colors::BLACK) || is_square_attacked(Square("g1"), Colors::BLACK))) {
+            else if (move.to_square == "c1" && (!castling_rights.white_queenside || is_square_attacked(Square("e1"), Colors::BLACK) || is_square_attacked(Square("d1"), Colors::BLACK) || is_square_attacked(Square("c1"), Colors::BLACK))) {
                 legal_move = false; 
             }
         }
         else { // black to move
-            if (move.to_square == "g8" && (!castling_rights.black_kingside || is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE))) {
+            if (move.to_square == "g8" && (!castling_rights.black_kingside || is_square_attacked(Square("e8"), Colors::BLACK) || is_square_attacked(Square("f8"), Colors::WHITE) || is_square_attacked(Square("g8"), Colors::WHITE))) {
                 legal_move = false; 
             }
-            else if (move.to_square == "c8" && (!castling_rights.black_queenside || is_square_attacked(Square("d8"), Colors::WHITE) || is_square_attacked(Square("c8"), Colors::WHITE))) {
+            else if (move.to_square == "c8" && (!castling_rights.black_queenside || is_square_attacked(Square("e8"), Colors::BLACK) || is_square_attacked(Square("d8"), Colors::WHITE) || is_square_attacked(Square("c8"), Colors::WHITE))) {
                 legal_move = false; 
             }
         }
@@ -829,7 +829,9 @@ void Position::print_moves(MoveList& in_moves) {
                 unmake_move(move, unmove);
                 bool is_checkmate{true};
                 while (!new_moves.empty()) {
-                    if (move_was_legal(move)) {
+                    Move next_move = new_moves.top();
+                    new_moves.pop();
+                    if (move_was_legal(next_move)) {
                         // at least one legal move for the opponent -- not a checkmate
                         is_checkmate = false; 
                         break;
@@ -884,12 +886,14 @@ bool Position::is_square_attacked(Square sq, Colors attacker) const {
                 if (!candidate_sq.in_bounds()) {
                     break;
                 }
-                if (get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
-                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
-                }
-                else if (pieces[candidate_sq] == Piece::WBISHOP || pieces[candidate_sq] == Piece::WQUEEN) {
-                    return true; // attacked by bishop or queen in this direction
-                }
+                if (pieces[candidate_sq] != Piece::NOPIECE) {
+                    if (pieces[candidate_sq] == Piece::WBISHOP || pieces[candidate_sq] == Piece::WQUEEN) {
+                        return true; // attacked by bishop or queen in this direction
+                    }
+                    else {
+                        break; // any other piece blocks the attack in this direction
+                    }
+                }   
             }
             candidate_sq = sq;
             offset = offsets::rook_move_offsets[i];
@@ -898,12 +902,14 @@ bool Position::is_square_attacked(Square sq, Colors attacker) const {
                 if (!candidate_sq.in_bounds()) {
                     break;
                 }
-                if (get_piece_color(pieces[candidate_sq]) == Colors::BLACK) {
-                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
-                }
-                else if (pieces[candidate_sq] == Piece::WROOK || pieces[candidate_sq] == Piece::WQUEEN) {
-                    return true; // attacked by rook or queen in this direction
-                }
+                if (pieces[candidate_sq] != Piece::NOPIECE) {
+                    if (pieces[candidate_sq] == Piece::WROOK || pieces[candidate_sq] == Piece::WQUEEN) {
+                        return true; // attacked by rook or queen in this direction
+                    }
+                    else {
+                        break; // any other piece blocks the attack in this direction
+                    }
+                } 
             }
         }
     } 
@@ -937,12 +943,14 @@ bool Position::is_square_attacked(Square sq, Colors attacker) const {
                 if (!candidate_sq.in_bounds()) {
                     break;
                 }
-                if (get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
-                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
-                }
-                else if (pieces[candidate_sq] == Piece::BBISHOP || pieces[candidate_sq] == Piece::BQUEEN) {
-                    return true; // attacked by bishop or queen in this direction
-                }
+                if (pieces[candidate_sq] != Piece::NOPIECE) {
+                    if (pieces[candidate_sq] == Piece::BBISHOP || pieces[candidate_sq] == Piece::BQUEEN) {
+                        return true; // attacked by bishop or queen in this direction
+                    }
+                    else {
+                        break; // any other piece blocks the attack in this direction
+                    }
+                } 
             }
             candidate_sq = sq;
             offset = offsets::rook_move_offsets[i];
@@ -951,12 +959,14 @@ bool Position::is_square_attacked(Square sq, Colors attacker) const {
                 if (!candidate_sq.in_bounds()) {
                     break;
                 }
-                if (get_piece_color(pieces[candidate_sq]) == Colors::WHITE) {
-                    break; // cannot be attacked in this direction if there is a piece blocking that is not the attacker
-                }
-                else if (pieces[candidate_sq] == Piece::BROOK || pieces[candidate_sq] == Piece::BQUEEN) {
-                    return true; // attacked by rook or queen in this direction
-                }
+                if (pieces[candidate_sq] != Piece::NOPIECE) {
+                    if (pieces[candidate_sq] == Piece::BROOK || pieces[candidate_sq] == Piece::BQUEEN) {
+                        return true; // attacked by bishop or queen in this direction
+                    }
+                    else {
+                        break; // any other piece blocks the attack in this direction
+                    }
+                } 
             }
         }
     }

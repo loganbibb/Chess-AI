@@ -877,16 +877,19 @@ TEST_F(PositionTest, BlackCannotCastleThroughCheck) {
     pos.set_side_to_move(Colors::BLACK);
 
     MoveList moves = pos.generate_moves();
+    Unmove unmove;
 
     // Kingside castling for black would be a move to g8; it should NOT be present
     bool found_kingside_castle_black = false;
     while (!moves.empty()) {
         Move move = moves.top();
         moves.pop();
-        if (move.is_castle && move.to_square == Square("g8")) {
+        pos.make_move(move, unmove); // Make the move to check legality
+        if (move.is_castle && move.to_square == Square("g8") && pos.move_was_legal(move)) {
             found_kingside_castle_black = true;
             break;
         }
+        pos.unmake_move(move, unmove);
     }
     EXPECT_FALSE(found_kingside_castle_black) << "Black should not be allowed to castle through a square attacked by the opponent";
 }
