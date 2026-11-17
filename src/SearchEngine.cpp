@@ -4,6 +4,7 @@
 #include "SearchEngine.h"
 
 Move SearchEngine::search(int depth, Colors player) {
+    if (depth <= 0) return Move();
     if (player == Colors::NOCOLOR) {
         throw Exceptions::InvalidColorException("Invalid player color. Player must be either WHITE or BLACK.");
     }
@@ -53,15 +54,7 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
     float eval; 
     float best_eval = (player == Colors::WHITE) ? -std::numeric_limits<float>::infinity() : std::numeric_limits<float>::infinity();
     Unmove unmove;
-
-    // generate all legal moves and call minimax on each
-    MoveList moves = position.generate_moves();
-
-    // first, check for terminal position 
-    if (moves.empty()) {
-        eval = position.eval_terminal_position();
-        return eval; // no legal moves, so return empty move
-    }
+    bool found_move = false;
 
     if (depth == 0) {
         // if in check, extend search depth by 1 to look for checkmate / stalemate
@@ -74,6 +67,15 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
         }
     }
 
+    // generate all legal moves and call minimax on each
+    MoveList moves = position.generate_moves();
+
+    // first, check for terminal position 
+    if (moves.empty()) {
+        eval = position.eval_terminal_position();
+        return eval; // no legal moves, so return empty move
+    }
+
     while (!moves.empty()) {
         Move move = moves.top();
         moves.pop();
@@ -82,18 +84,15 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
             position.unmake_move(move, unmove); 
             continue;
         }
+        found_move = true;
         if (player == Colors::WHITE) {
             eval = minimax(depth - 1, Colors::BLACK, alpha, beta);
-            if (eval > alpha) {
-                alpha = eval;
-                best_eval = eval; 
-            }
+            best_eval  = std::max(best_eval, eval);
+            alpha = std::max(alpha, eval);
         } else {
             eval = minimax(depth - 1, Colors::WHITE, alpha, beta);
-            if (eval < beta) {
-                beta = eval;
-                best_eval = eval;
-            }
+            best_eval = std::min(best_eval, eval);
+            beta = std::min(beta, eval);
         }
         position.unmake_move(move, unmove);
         // alpha-beta pruning
@@ -103,7 +102,7 @@ float SearchEngine::minimax(int depth, Colors player, float alpha, float beta) {
     }
 
     // if no legal moves, do terminal position evaluation
-    if (best_eval == -std::numeric_limits<float>::infinity() || best_eval == std::numeric_limits<float>::infinity()) {
+    if (!found_move) {
         best_eval = position.eval_terminal_position();
     }
     return best_eval;
