@@ -858,10 +858,10 @@ void Position::show() const {
 bool Position::is_square_attacked(Square sq, Colors attacker) const {
     if (attacker == Colors::WHITE) {
         // check for white pawn attacks
-        if (sq.file() > 0 && sq.rank() < 7 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::WPAWN) {
+        if (sq.file() > 0 && sq.rank() > 0 && pieces(sq.file() - 1, sq.rank() - 1) == Piece::WPAWN) {
             return true;
         }
-        if (sq.file() < 7 && sq.rank() < 7 && pieces(sq.file() + 1, sq.rank() - 1) == Piece::WPAWN) {
+        if (sq.file() < 7 && sq.rank() > 0 && pieces(sq.file() + 1, sq.rank() - 1) == Piece::WPAWN) {
             return true;
         }
         for (const auto& offset : offsets::knight_move_offsets) {
