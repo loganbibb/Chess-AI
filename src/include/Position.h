@@ -57,6 +57,8 @@ public:
     inline void set_white_king_square(Square sq) {white_king_sq = sq;};
     inline void set_black_king_square(Square sq) {black_king_sq = sq;};
     MoveList generate_moves();
+    void score_move(Move& move) const;
+    void add_move(MoveList& moves, Move& move) const;
     bool move_was_legal(const Move& move);
     double eval_terminal_position() const;
     void make_move(const Move& move, Unmove& unmove);

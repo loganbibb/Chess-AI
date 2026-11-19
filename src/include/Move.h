@@ -14,6 +14,7 @@ struct Move {
     bool is_castle = false; 
     bool is_promotion = false;
     bool is_en_passant = false;
+    int score{INT32_MIN};
 
     Piece promotion_piece = Piece::NOPIECE; // only used if is_promotion is true
     bool operator<(const Move& other) const;

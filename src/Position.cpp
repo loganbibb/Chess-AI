@@ -307,7 +307,7 @@ void Position::generate_pawn_moves(Square& sq, MoveList& moves) const {
 
     // add generated pawn moves to moves vector
     for (auto& move : pawn_moves) {
-        moves.push(move);
+        add_move(moves, move);
     }
 }
 
@@ -323,7 +323,7 @@ void Position::generate_knight_moves(Square& sq, MoveList& moves) const {
             new_move.is_castle = false;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push(new_move);
+            add_move(moves, new_move);
         }
     }
 }
@@ -347,7 +347,7 @@ void Position::generate_bishop_moves(Square& sq, MoveList& moves) const {
                 new_move.is_castle = false;
                 new_move.is_promotion = false; 
                 new_move.is_en_passant = false;
-                moves.push(new_move);
+                add_move(moves, new_move);
                 if (pieces[candidate_sq] != Piece::NOPIECE) {
                     break; // cannot jump over pieces, so stop looking in this direction after a capture
                 }
@@ -381,7 +381,7 @@ void Position::generate_rook_moves(Square& sq, MoveList& moves) const {
                 new_move.is_castle = false;
                 new_move.is_promotion = false; 
                 new_move.is_en_passant = false;
-                moves.push(new_move);
+                add_move(moves, new_move);
                 if (pieces[candidate_sq] != Piece::NOPIECE) {
                     break; // cannot jump over pieces, so stop looking in this direction after a capture
                 }
@@ -414,7 +414,7 @@ void Position::generate_king_moves(Square& sq, MoveList& moves) const {
             new_move.is_castle = false;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push(new_move);
+            add_move(moves, new_move);
         }
     }
 
@@ -432,7 +432,7 @@ void Position::generate_king_moves(Square& sq, MoveList& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push(new_move);
+            add_move(moves, new_move);
         }
         if (castling_rights.white_queenside && 
             pieces["e1"] == Piece::WKING && pieces["a1"] == Piece::WROOK && 
@@ -443,7 +443,7 @@ void Position::generate_king_moves(Square& sq, MoveList& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push(new_move);
+            add_move(moves, new_move);
         }
     }
     else { // black to move 
@@ -456,7 +456,7 @@ void Position::generate_king_moves(Square& sq, MoveList& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push(new_move);
+            add_move(moves, new_move);
         }
         if (castling_rights.black_queenside && 
             pieces["e8"] == Piece::WKING && pieces["a8"] == Piece::WROOK && 
@@ -467,7 +467,7 @@ void Position::generate_king_moves(Square& sq, MoveList& moves) const {
             new_move.is_castle = true;
             new_move.is_promotion = false; 
             new_move.is_en_passant = false;
-            moves.push(new_move);
+            add_move(moves, new_move);
         }
     }
 
@@ -588,6 +588,23 @@ bool Position::move_was_legal(const Move& move) {
         }
     }
     return legal_move;
+}
+
+void Position::score_move(Move& move) const {
+    /* 
+     * apply MVV-LVA scoring to the move for ranking in the MoveList priority queue.
+    */
+   
+    int from_idx = std::abs((int)(pieces[move.from_square]));
+    int to_idx = std::abs((int)(pieces[move.to_square]));
+    float MVV = eval::middlegame::piece_values[to_idx] + eval::endgame::piece_values[to_idx];
+    float LVA = eval::middlegame::piece_values[from_idx] + eval::endgame::piece_values[from_idx];
+    move.score = (MVV - LVA);
+}
+
+void Position::add_move(MoveList& moves, Move& move) const {
+    score_move(move);
+    moves.push(move);
 }
 
 void Position::make_move(const Move& move, Unmove& unmove) {
